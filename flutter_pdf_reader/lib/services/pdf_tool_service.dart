@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:ui' show Rect, Offset;
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 
 
@@ -261,8 +260,9 @@ class PdfToolService {
         final image = PdfBitmap(imageBytes);
 
         final page = doc.pages.add();
-        page.graphics.drawImage(image, const Offset(0, 0),
-            bounds: Rect.fromLTWH(0, 0, page.size.width, page.size.height));
+        page.graphics.drawImage(
+            image,
+            Rect.fromLTWH(0, 0, page.size.width, page.size.height));
       }
 
       final outBytes = doc.saveSync();
