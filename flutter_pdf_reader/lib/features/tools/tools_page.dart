@@ -8,11 +8,12 @@ import 'rotate_page_page.dart';
 import 'extract_page_page.dart';
 import 'watermark_page_page.dart';
 import 'compress_pdf_page.dart';
+import 'scan_page.dart';
 
 class ToolsPage extends StatelessWidget {
   const ToolsPage({super.key});
 
-  static const _utilities = <_ToolItem>[
+  static final _utilities = <_ToolItem>[
     _ToolItem(
       title: 'PDF 合并',
       subtitle: '多个 PDF 合并为一个',
@@ -43,7 +44,7 @@ class ToolsPage extends StatelessWidget {
     ),
   ];
 
-  static const _edits = <_ToolItem>[
+  static final _edits = <_ToolItem>[
     _ToolItem(
       title: '删除页面',
       subtitle: '移除指定页面',
@@ -78,6 +79,16 @@ class ToolsPage extends StatelessWidget {
       icon: Icons.compress,
       color: Color(0xFF78909C),
       page: CompressPdfPage(),
+    ),
+  ];
+
+  static final _scanTools = <_ToolItem>[
+    _ToolItem(
+      title: '扫描 / OCR',
+      subtitle: '拍照识别文字，导出可搜索 PDF',
+      icon: Icons.document_scanner,
+      color: Color(0xFF00BCD4),
+      page: const ScanPage(),
     ),
   ];
 
@@ -178,6 +189,49 @@ class ToolsPage extends StatelessWidget {
               itemBuilder: (context, index) {
                 return _ToolCard(
                   tool: _edits[index],
+                  index: index,
+                  isFirstSection: false,
+                );
+              },
+            ),
+
+            const SizedBox(height: 28),
+
+            // ---- 扫描/OCR ----
+            Row(
+              children: [
+                Icon(Icons.document_scanner_outlined,
+                    color: theme.colorScheme.onSurface.withOpacity(0.6),
+                    size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  '扫描 / OCR',
+                  style: theme.textTheme.titleLarge,
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              '拍照识别文字，生成可搜索 PDF',
+              style: TextStyle(
+                color: theme.colorScheme.onSurface.withOpacity(0.5),
+                fontSize: 14,
+              ),
+            ),
+            const SizedBox(height: 16),
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                childAspectRatio: 1.1,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+              ),
+              itemCount: _scanTools.length,
+              itemBuilder: (context, index) {
+                return _ToolCard(
+                  tool: _scanTools[index],
                   index: index,
                   isFirstSection: false,
                 );
