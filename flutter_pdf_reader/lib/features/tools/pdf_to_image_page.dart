@@ -51,7 +51,7 @@ class _PdfToImagePageState extends State<PdfToImagePage> {
     final result = await PdfToolService.pdfToImages(
       inputPath: _filePath!,
       outputDir: imgDir.path,
-      format: format,
+      imageFormat: format,
     );
 
     setState(() => _isProcessing = false);

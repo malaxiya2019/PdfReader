@@ -4,8 +4,6 @@ import 'package:all_pdf_reader/models/pdf_file_info.dart';
 void main() {
   group('PdfFileInfo', () {
     final now = DateTime(2026, 7, 25, 12, 0, 0);
-    final yesterday = DateTime(2026, 7, 24, 12, 0, 0);
-
     test('should create instance with correct values', () {
       final file = PdfFileInfo(
         path: '/storage/emulated/0/Download/test.pdf',

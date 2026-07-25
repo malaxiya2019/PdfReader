@@ -5,7 +5,6 @@ import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 import '../../services/reading_record_service.dart';
 import '../../services/bookmark_service.dart';
-import '../../services/ai/ai_factory.dart';
 import 'ai_assistant_page.dart';
 
 class PdfReaderPage extends StatefulWidget {
@@ -304,7 +303,6 @@ class _PdfReaderPageState extends State<PdfReaderPage>
   Future<void> _openAIAssistant() async {
     // 提取 PDF 文本
     String pdfText = "";
-    String error = "";
     try {
       // 使用 PdfDocument API 提取文本（Syncfusion v24+）
       final File file = File(widget.filePath);
@@ -319,7 +317,7 @@ class _PdfReaderPageState extends State<PdfReaderPage>
         doc.dispose();
       }
     } catch (e) {
-      error = e.toString();
+      // error ignored
     }
 
     if (pdfText.isEmpty) {

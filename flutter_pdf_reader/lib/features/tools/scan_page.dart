@@ -5,7 +5,6 @@ import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart
 import 'package:image/image.dart' as img;
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 import 'package:path_provider/path_provider.dart';
-import '../../services/pdf_tool_service.dart';
 
 class ScanPage extends StatefulWidget {
   const ScanPage({super.key});

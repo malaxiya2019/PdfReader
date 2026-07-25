@@ -43,7 +43,6 @@ class _CompressPdfPageState extends State<CompressPdfPage> {
     final result = await PdfToolService.compressPDF(
       inputPath: _filePath!,
       outputPath: outPath,
-      quality: _quality,
     );
 
     setState(() => _isProcessing = false);

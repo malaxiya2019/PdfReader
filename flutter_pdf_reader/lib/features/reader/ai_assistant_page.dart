@@ -198,7 +198,7 @@ class _AIAssistantPageState extends State<AIAssistantPage> {
           // Message list
           Expanded(
             child: _messages.isEmpty
-                ? _buildWelcome(theme)
+                ? _buildWelcome(theme, isCloud)
                 : ListView.builder(
                     controller: _scrollController,
                     padding: const EdgeInsets.all(16),
@@ -310,7 +310,7 @@ class _AIAssistantPageState extends State<AIAssistantPage> {
     );
   }
 
-  Widget _buildWelcome(ThemeData theme) {
+  Widget _buildWelcome(ThemeData theme, bool isCloud) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),

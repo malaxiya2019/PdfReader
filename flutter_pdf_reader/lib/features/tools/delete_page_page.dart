@@ -50,7 +50,7 @@ class _DeletePagePageState extends State<DeletePagePage> {
     final result = await PdfToolService.deletePages(
       inputPath: _filePath!,
       outputPath: outPath,
-      pagesToDelete: Set.from(_selectedPages),
+      pageNumbers: _selectedPages.toList(),
     );
 
     setState(() => _isProcessing = false);

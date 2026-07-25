@@ -2,7 +2,7 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:ui' show Rect, Offset;
 import 'package:syncfusion_flutter_pdf/pdf.dart';
-import 'package:path_provider/path_provider.dart';
+
 
 class PdfToolResult {
   final bool success;
@@ -112,7 +112,6 @@ class PdfToolService {
             final newPage = newDoc.pages.add();
             final template = doc.pages[i].createTemplate();
             newPage.graphics.drawPdfTemplate(template, Offset.zero);
-            template.dispose();
           }
         }
 
@@ -159,7 +158,6 @@ class PdfToolService {
         final newPage = newDoc.pages.add();
         final template = doc.pages[i].createTemplate();
         newPage.graphics.drawPdfTemplate(template, Offset.zero);
-        template.dispose();
       }
 
       final outBytes = newDoc.saveSync();
@@ -193,7 +191,6 @@ class PdfToolService {
         final newPage = newDoc.pages.add();
         final template = doc.pages[i].createTemplate();
         newPage.graphics.drawPdfTemplate(template, Offset.zero);
-        template.dispose();
 
         final outBytes = newDoc.saveSync();
         newDoc.dispose();
@@ -234,7 +231,6 @@ class PdfToolService {
           pageSize: page.size,
         );
         final imageBytes = image.saveSync();
-        image.dispose();
 
         final outPath = '$outputDir/page_${i + 1}.$ext';
         await File(outPath).writeAsBytes(imageBytes);
@@ -271,7 +267,6 @@ class PdfToolService {
         final page = doc.pages.add();
         page.graphics.drawImage(image, Offset.zero,
             bounds: Rect.fromLTWH(0, 0, page.size.width, page.size.height));
-        image.dispose();
       }
 
       final outBytes = doc.saveSync();
@@ -315,7 +310,6 @@ class PdfToolService {
           final newPage = newDoc.pages.add();
           final template = doc.pages[i].createTemplate();
           newPage.graphics.drawPdfTemplate(template, Offset.zero);
-          template.dispose();
         }
       }
 
@@ -352,7 +346,6 @@ class PdfToolService {
         final newPage = newDoc.pages.add();
         final template = doc.pages[i].createTemplate();
         newPage.graphics.drawPdfTemplate(template, Offset.zero);
-        template.dispose();
 
         if (pageNumbers.contains(i + 1)) {
           // 通过设置 rotation 实现旋转
@@ -398,7 +391,6 @@ class PdfToolService {
           final newPage = newDoc.pages.add();
           final template = doc.pages[i].createTemplate();
           newPage.graphics.drawPdfTemplate(template, Offset.zero);
-          template.dispose();
         }
       }
 
@@ -492,4 +484,21 @@ class PdfToolService {
       return PdfToolResult(success: false, message: '压缩失败: $e');
     }
   }
+
+  /// 获取输出目录（缓存目录）
+  static Future<String> getOutputDir() async {
+    final dir = Directory.systemTemp;
+    final outDir = Directory('${dir.path}/pdf_tools');
+    if (!await outDir.exists()) {
+      await outDir.create(recursive: true);
+    }
+    return outDir.path;
+  }
+
+  /// 生成时间戳文件名
+  static String timestampFileName(String prefix, String ext) {
+    final now = DateTime.now();
+    return '${prefix}${now.millisecondsSinceEpoch}.$ext';
+  }
+
 }

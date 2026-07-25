@@ -50,7 +50,7 @@ class _ExtractPagePageState extends State<ExtractPagePage> {
     final result = await PdfToolService.extractPages(
       inputPath: _filePath!,
       outputPath: outPath,
-      pageNumbers: Set.from(_selectedPages),
+      pageNumbers: _selectedPages.toList(),
     );
 
     setState(() => _isProcessing = false);

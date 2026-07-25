@@ -64,7 +64,7 @@ class _SplitPdfPageState extends State<SplitPdfPage> {
     final outName = '${name}_第${start}-${end}页.pdf';
     final outPath = '${outDir.path}/$outName';
 
-    final result = await PdfToolService.splitPDFByRange(
+    final result = await PdfToolService.splitPDF(
       inputPath: _filePath!,
       outputPath: outPath,
       startPage: start,
@@ -86,7 +86,7 @@ class _SplitPdfPageState extends State<SplitPdfPage> {
     final dirPath = '${outDir.path}/${_fileName(_filePath!)}_逐页拆分';
     await Directory(dirPath).create(recursive: true);
 
-    final result = await PdfToolService.splitPDFAllPages(
+    final result = await PdfToolService.splitPDFByPage(
       inputPath: _filePath!,
       outputDir: dirPath,
     );

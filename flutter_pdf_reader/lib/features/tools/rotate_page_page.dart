@@ -52,8 +52,8 @@ class _RotatePagePageState extends State<RotatePagePage> {
     final result = await PdfToolService.rotatePages(
       inputPath: _filePath!,
       outputPath: outPath,
-      pageNumbers: Set.from(_selectedPages),
-      angle: _angle,
+      pageNumbers: _selectedPages.toList(),
+      rotation: _angle,
     );
 
     setState(() => _isProcessing = false);

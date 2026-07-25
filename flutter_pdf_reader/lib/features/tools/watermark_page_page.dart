@@ -46,9 +46,6 @@ class _WatermarkPagePageState extends State<WatermarkPagePage> {
       inputPath: _filePath!,
       outputPath: outPath,
       text: _textController.text.trim(),
-      opacity: _opacity,
-      fontSize: _fontSize,
-      colorValue: _color.value,
     );
 
     setState(() => _isProcessing = false);
