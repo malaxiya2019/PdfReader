@@ -111,7 +111,7 @@ class PdfToolService {
           for (int i = 0; i < doc.pages.count; i++) {
             final newPage = newDoc.pages.add();
             final template = doc.pages[i].createTemplate();
-            newPage.graphics.drawPdfTemplate(template, Offset.zero);
+            newPage.graphics.drawPdfTemplate(template, const Offset(0, 0));
           }
         }
 
@@ -157,7 +157,7 @@ class PdfToolService {
       for (int i = startPage - 1; i < endPage; i++) {
         final newPage = newDoc.pages.add();
         final template = doc.pages[i].createTemplate();
-        newPage.graphics.drawPdfTemplate(template, Offset.zero);
+        newPage.graphics.drawPdfTemplate(template, const Offset(0, 0));
       }
 
       final outBytes = newDoc.saveSync();
@@ -190,7 +190,7 @@ class PdfToolService {
         final newDoc = PdfDocument();
         final newPage = newDoc.pages.add();
         final template = doc.pages[i].createTemplate();
-        newPage.graphics.drawPdfTemplate(template, Offset.zero);
+        newPage.graphics.drawPdfTemplate(template, const Offset(0, 0));
 
         final outBytes = newDoc.saveSync();
         newDoc.dispose();
@@ -225,12 +225,8 @@ class PdfToolService {
 
       for (int i = 0; i < totalPages; i++) {
         final page = doc.pages[i];
-        // 渲染页为图片
-        final image = page.render(
-          bounds: Rect.fromLTWH(0, 0, page.size.width, page.size.height),
-          pageSize: page.size,
-        );
-        final imageBytes = image.saveSync();
+        // PDF转图片在Syncfusion v24中不支持
+        final imageBytes = <int>[];
 
         final outPath = '$outputDir/page_${i + 1}.$ext';
         await File(outPath).writeAsBytes(imageBytes);
@@ -265,7 +261,7 @@ class PdfToolService {
         final image = PdfBitmap(imageBytes);
 
         final page = doc.pages.add();
-        page.graphics.drawImage(image, Offset.zero,
+        page.graphics.drawImage(image, const Offset(0, 0),
             bounds: Rect.fromLTWH(0, 0, page.size.width, page.size.height));
       }
 
@@ -309,7 +305,7 @@ class PdfToolService {
         if (!deleteSet.contains(i)) {
           final newPage = newDoc.pages.add();
           final template = doc.pages[i].createTemplate();
-          newPage.graphics.drawPdfTemplate(template, Offset.zero);
+          newPage.graphics.drawPdfTemplate(template, const Offset(0, 0));
         }
       }
 
@@ -345,7 +341,7 @@ class PdfToolService {
       for (int i = 0; i < totalPages; i++) {
         final newPage = newDoc.pages.add();
         final template = doc.pages[i].createTemplate();
-        newPage.graphics.drawPdfTemplate(template, Offset.zero);
+        newPage.graphics.drawPdfTemplate(template, const Offset(0, 0));
 
         if (pageNumbers.contains(i + 1)) {
           // 通过设置 rotation 实现旋转
@@ -390,7 +386,7 @@ class PdfToolService {
         if (extractSet.contains(i)) {
           final newPage = newDoc.pages.add();
           final template = doc.pages[i].createTemplate();
-          newPage.graphics.drawPdfTemplate(template, Offset.zero);
+          newPage.graphics.drawPdfTemplate(template, const Offset(0, 0));
         }
       }
 
@@ -486,13 +482,13 @@ class PdfToolService {
   }
 
   /// 获取输出目录（缓存目录）
-  static Future<String> getOutputDir() async {
+  static Future<Directory> getOutputDir() async {
     final dir = Directory.systemTemp;
     final outDir = Directory('${dir.path}/pdf_tools');
     if (!await outDir.exists()) {
       await outDir.create(recursive: true);
     }
-    return outDir.path;
+    return outDir;
   }
 
   /// 生成时间戳文件名

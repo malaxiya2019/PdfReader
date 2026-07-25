@@ -309,11 +309,9 @@ class _PdfReaderPageState extends State<PdfReaderPage>
       if (await file.exists()) {
         final bytes = await file.readAsBytes();
         final PdfDocument doc = PdfDocument(inputBytes: bytes);
-        final StringBuffer buf = StringBuffer();
-        for (int i = 0; i < doc.pages.count; i++) {
-          buf.writeln(doc.pages[i].extractText());
-        }
-        pdfText = buf.toString();
+        // 使用 PdfTextExtractor 提取 PDF 文本
+        final PdfTextExtractor extractor = PdfTextExtractor(doc);
+        pdfText = extractor.extractText();
         doc.dispose();
       }
     } catch (e) {
