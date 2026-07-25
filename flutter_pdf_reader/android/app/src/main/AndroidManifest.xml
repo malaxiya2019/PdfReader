@@ -14,6 +14,8 @@
 
     <application
         android:label="All PDF Reader"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:name="io.flutter.embedding.android.FlutterApplication"
         android:requestLegacyExternalStorage="true">
 

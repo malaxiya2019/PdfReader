@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Document body -->
+    <path
+        android:fillColor="#E53935"
+        android:pathData="M32,28 L32,80 Q32,86 38,86 L70,86 Q76,86 76,80 L76,52 L56,28 Z"/>
+
+    <!-- Document fold -->
+    <path
+        android:fillColor="#C62828"
+        android:pathData="M56,28 L76,52 L56,52 Z"/>
+
+    <!-- Text lines -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.6"
+        android:pathData="M38,56 L68,56 L68,58 L38,58 Z"/>
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.4"
+        android:pathData="M38,62 L60,62 L60,64 L38,64 Z"/>
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.4"
+        android:pathData="M38,68 L64,68 L64,70 L38,70 Z"/>
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.4"
+        android:pathData="M38,74 L56,74 L56,76 L38,76 Z"/>
+
+    <!-- Play triangle -->
+    <path
+        android:fillColor="#FFB300"
+        android:fillAlpha="0.9"
+        android:pathData="M42,76 L52,80 L42,84 Z"/>
+
+    <!-- Bookmark -->
+    <path
+        android:fillColor="#FFB300"
+        android:fillAlpha="0.85"
+        android:pathData="M66,28 L66,46 L72,40 L78,46 L78,28 Z"/>
+</vector>

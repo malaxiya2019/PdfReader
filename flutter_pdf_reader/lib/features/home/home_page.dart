@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import '../../models/pdf_file_info.dart';
 import '../../services/pdf_scanner_service.dart';
 import '../../router/app_router.dart';
+import '../../core/app_logo.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -50,7 +51,6 @@ class _HomePageState extends State<HomePage>
     });
 
     try {
-      // 先检查缓存，不强制刷新
       final allFiles = await PdfScannerService.scanAllCommonDirectories();
       if (mounted) {
         setState(() {
@@ -72,7 +72,6 @@ class _HomePageState extends State<HomePage>
     }
   }
 
-  /// 强制刷新（清缓存 + 重新扫描）
   Future<void> _forceRefresh() async {
     PdfScannerService.invalidateCache();
     await _loadData();
@@ -155,7 +154,31 @@ class _HomePageState extends State<HomePage>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildHeader(theme),
+              // 统一品牌 Logo
+              Center(
+                child: FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: const AppLogo(size: 72),
+                ),
+              ),
+              const SizedBox(height: 8),
+
+              // Open file button
+              Center(
+                child: FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: SizedBox(
+                    width: 220,
+                    height: 44,
+                    child: FilledButton.icon(
+                      onPressed: _pickAndOpenFile,
+                      icon: const Icon(Icons.folder_open, size: 18),
+                      label: const Text('打开 PDF 文件'),
+                    ),
+                  ),
+                ),
+              ),
+
               const SizedBox(height: 32),
 
               if (_isLoading)
@@ -164,19 +187,17 @@ class _HomePageState extends State<HomePage>
                 _buildErrorState(theme)
               else ...[
                 if (_favoriteFiles.isNotEmpty) ...[
-                  _buildSectionHeader(
-                      '收藏文件', Icons.star, Colors.amber, theme),
+                  _buildSectionHeader('收藏文件', Icons.star, Colors.amber),
                   const SizedBox(height: 8),
                   for (int i = 0; i < _favoriteFiles.length; i++)
                     _buildAnimatedItem(
                       index: i,
-                      child: _buildRecentItem(_favoriteFiles[i], theme),
+                      child: _buildFileItem(_favoriteFiles[i], theme),
                     ),
                   const SizedBox(height: 24),
                 ],
 
-                _buildSectionHeader(
-                    '最近文件', Icons.access_time, null, theme),
+                _buildSectionHeader('最近文件', Icons.access_time, null),
                 const SizedBox(height: 8),
                 if (_recentFiles.isEmpty)
                   _buildEmptyState(theme)
@@ -184,7 +205,7 @@ class _HomePageState extends State<HomePage>
                   for (int i = 0; i < _recentFiles.length; i++)
                     _buildAnimatedItem(
                       index: i + _favoriteFiles.length,
-                      child: _buildRecentItem(_recentFiles[i], theme),
+                      child: _buildFileItem(_recentFiles[i], theme),
                     ),
 
                 const SizedBox(height: 16),
@@ -205,99 +226,64 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  Widget _buildHeader(ThemeData theme) {
-    return FadeTransition(
-      opacity: _fadeAnimation,
-      child: Center(
-        child: Column(
-          children: [
-            Container(
-              width: 72,
-              height: 72,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primary.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: Icon(
-                Icons.picture_as_pdf_rounded,
-                size: 36,
-                color: theme.colorScheme.primary,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text('All PDF Reader',
-                style: theme.textTheme.headlineMedium),
-            const SizedBox(height: 4),
-            Text('高颜值暗黑风 PDF 阅读器',
-                style: theme.textTheme.bodyMedium),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: FilledButton.icon(
-                onPressed: _pickAndOpenFile,
-                icon: const Icon(Icons.folder_open, size: 20),
-                label: const Text('打开 PDF 文件'),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildShimmerLoading(ThemeData theme) {
-    return Column(
+  Widget _buildSectionHeader(String title, IconData icon, Color? iconColor) {
+    final theme = Theme.of(context);
+    return Row(
       children: [
-        _buildSectionHeader('最近文件', Icons.access_time, null, theme),
-        const SizedBox(height: 8),
-        for (int i = 0; i < 5; i++) _buildShimmerItem(theme),
+        Icon(icon,
+            size: 18,
+            color: iconColor ?? theme.colorScheme.onSurface.withOpacity(0.5)),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: TextStyle(
+            color: theme.colorScheme.onSurface,
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildShimmerItem(ThemeData theme) {
+  Widget _buildFileItem(PdfFileInfo file, ThemeData theme) {
     return Card(
       color: theme.cardColor,
       margin: const EdgeInsets.only(bottom: 6),
-      shape:
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      child: _ShimmerWidget(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(10),
+        onTap: () => _openFile(file),
         child: ListTile(
           dense: true,
           leading: Container(
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: Colors.grey.withOpacity(0.3),
+              color: theme.colorScheme.primary.withOpacity(0.12),
               borderRadius: BorderRadius.circular(10),
             ),
+            child: const Icon(Icons.picture_as_pdf_rounded, size: 20),
           ),
-          title: Container(
-            height: 12,
-            width: 150,
-            decoration: BoxDecoration(
-              color: Colors.grey.withOpacity(0.3),
-              borderRadius: BorderRadius.circular(4),
+          title: Text(
+            file.name,
+            style: TextStyle(
+              color: theme.colorScheme.onSurface,
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          subtitle: Text(
+            '${file.sizeFormatted} · ${file.dateFormatted}',
+            style: TextStyle(
+              color: theme.colorScheme.onSurface.withOpacity(0.5),
+              fontSize: 11,
             ),
           ),
-          subtitle: Container(
-            height: 10,
-            width: 100,
-            margin: const EdgeInsets.only(top: 6),
-            decoration: BoxDecoration(
-              color: Colors.grey.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(4),
-            ),
-          ),
-          trailing: Container(
-            width: 20,
-            height: 20,
-            decoration: BoxDecoration(
-              color: Colors.grey.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(4),
-            ),
-          ),
+          trailing: Icon(Icons.chevron_right,
+              color: theme.colorScheme.onSurface.withOpacity(0.3), size: 20),
         ),
       ),
     );
@@ -324,75 +310,57 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  Widget _buildSectionHeader(
-      String title, IconData icon, Color? iconColor, ThemeData theme) {
-    return Row(
+  Widget _buildShimmerLoading(ThemeData theme) {
+    return Column(
       children: [
-        Icon(icon,
-            size: 18,
-            color:
-                iconColor ?? theme.colorScheme.onSurface.withOpacity(0.5)),
-        const SizedBox(width: 8),
-        Text(
-          title,
-          style: TextStyle(
-            color: theme.colorScheme.onSurface,
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
+        _buildSectionHeader('最近文件', Icons.access_time, null),
+        const SizedBox(height: 8),
+        for (int i = 0; i < 5; i++)
+          Card(
+            color: theme.cardColor,
+            margin: const EdgeInsets.only(bottom: 6),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10)),
+            child: _ShimmerWidget(
+              child: ListTile(
+                dense: true,
+                leading: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                title: Container(
+                  height: 12,
+                  width: 150,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                subtitle: Container(
+                  height: 10,
+                  width: 100,
+                  margin: const EdgeInsets.only(top: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                trailing: Container(
+                  width: 20,
+                  height: 20,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ),
+            ),
           ),
-        ),
       ],
-    );
-  }
-
-  Widget _buildRecentItem(PdfFileInfo file, ThemeData theme) {
-    return Card(
-      color: theme.cardColor,
-      margin: const EdgeInsets.only(bottom: 6),
-      shape:
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(10),
-        onTap: () => _openFile(file),
-        child: ListTile(
-          dense: true,
-          leading: Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withOpacity(0.12),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(
-              Icons.picture_as_pdf_rounded,
-              color: null,
-              size: 20,
-            ),
-          ),
-          title: Text(
-            file.name,
-            style: TextStyle(
-              color: theme.colorScheme.onSurface,
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          subtitle: Text(
-            '${file.sizeFormatted} · ${file.dateFormatted}',
-            style: TextStyle(
-              color: theme.colorScheme.onSurface.withOpacity(0.5),
-              fontSize: 11,
-            ),
-          ),
-          trailing: Icon(
-            Icons.chevron_right,
-            color: theme.colorScheme.onSurface.withOpacity(0.3),
-            size: 20,
-          ),
-        ),
-      ),
     );
   }
 
@@ -405,32 +373,22 @@ class _HomePageState extends State<HomePage>
           children: [
             Icon(Icons.folder_open,
                 size: 64,
-                color:
-                    theme.colorScheme.onSurface.withOpacity(0.15)),
+                color: theme.colorScheme.onSurface.withOpacity(0.15)),
             const SizedBox(height: 16),
-            Text(
-              '未找到 PDF 文件',
-              style: TextStyle(
-                color: theme.colorScheme.onSurface.withOpacity(0.5),
-                fontSize: 16,
-              ),
-            ),
+            Text('未找到 PDF 文件',
+                style: TextStyle(
+                    color: theme.colorScheme.onSurface.withOpacity(0.5),
+                    fontSize: 16)),
             const SizedBox(height: 8),
-            Text(
-              '点击上方按钮打开文件',
-              style: TextStyle(
-                color: theme.colorScheme.onSurface.withOpacity(0.3),
-                fontSize: 13,
-              ),
-            ),
+            Text('点击上方按钮打开文件',
+                style: TextStyle(
+                    color: theme.colorScheme.onSurface.withOpacity(0.3),
+                    fontSize: 13)),
             const SizedBox(height: 8),
-            Text(
-              '或切换到"文件"标签扫描设备',
-              style: TextStyle(
-                color: theme.colorScheme.onSurface.withOpacity(0.3),
-                fontSize: 13,
-              ),
-            ),
+            Text('或切换到"文件"标签扫描设备',
+                style: TextStyle(
+                    color: theme.colorScheme.onSurface.withOpacity(0.3),
+                    fontSize: 13)),
           ],
         ),
       ),
@@ -448,23 +406,17 @@ class _HomePageState extends State<HomePage>
                 size: 64,
                 color: theme.colorScheme.error.withOpacity(0.5)),
             const SizedBox(height: 16),
-            Text(
-              '加载失败',
-              style: TextStyle(
-                color: theme.colorScheme.onSurface.withOpacity(0.7),
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
+            Text('加载失败',
+                style: TextStyle(
+                    color: theme.colorScheme.onSurface.withOpacity(0.7),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500)),
             const SizedBox(height: 8),
-            Text(
-              _errorMessage,
-              style: TextStyle(
-                color: theme.colorScheme.onSurface.withOpacity(0.4),
-                fontSize: 13,
-              ),
-              textAlign: TextAlign.center,
-            ),
+            Text(_errorMessage,
+                style: TextStyle(
+                    color: theme.colorScheme.onSurface.withOpacity(0.4),
+                    fontSize: 13),
+                textAlign: TextAlign.center),
             const SizedBox(height: 24),
             FilledButton.tonalIcon(
               onPressed: _forceRefresh,
@@ -478,10 +430,8 @@ class _HomePageState extends State<HomePage>
   }
 }
 
-/// 闪烁骨架屏动画组件
 class _ShimmerWidget extends StatefulWidget {
   final Widget child;
-
   const _ShimmerWidget({required this.child});
 
   @override
@@ -516,10 +466,7 @@ class _ShimmerWidgetState extends State<_ShimmerWidget>
     return AnimatedBuilder(
       animation: _animation,
       builder: (context, child) {
-        return Opacity(
-          opacity: _animation.value,
-          child: child,
-        );
+        return Opacity(opacity: _animation.value, child: child);
       },
       child: widget.child,
     );
