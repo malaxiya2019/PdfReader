@@ -39,7 +39,6 @@ class _HomePageState extends State<HomePage> {
   Future<void> _saveRecentFile(String path, String name) async {
     final prefs = await SharedPreferences.getInstance();
     final now = DateTime.now().toIso8601String();
-    final entry = '$path|||$name|||$now';
 
     // Remove duplicate
     _recentFiles.removeWhere((f) => f['path'] == path);

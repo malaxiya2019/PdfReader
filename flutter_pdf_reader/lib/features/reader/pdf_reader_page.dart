@@ -86,10 +86,6 @@ class _PdfReaderPageState extends State<PdfReaderPage> {
           _currentPage = details.newPageNumber;
         });
       },
-      pageLayoutMode: PageLayoutMode.singlePage,
-      canShowPaginationDialog: false,
-      canShowScrollStatus: false,
-      canShowPageNumberIndicator: false,
     );
 
     if (_isFullscreen) {
