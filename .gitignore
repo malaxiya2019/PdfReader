@@ -1,0 +1,27 @@
+# Flutter
+flutter_pdf_reader/build/
+flutter_pdf_reader/.dart_tool/
+flutter_pdf_reader/.packages
+flutter_pdf_reader/.pub/
+flutter_pdf_reader/.flutter-plugins
+flutter_pdf_reader/.flutter-plugins-dependencies
+flutter_pdf_reader/pubspec.lock
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Android
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# Python
+__pycache__/
+*.pyc

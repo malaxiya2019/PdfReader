@@ -1,0 +1,72 @@
+name: Build APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    defaults:
+      run:
+        working-directory: flutter_pdf_reader
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 设置 Flutter 3.22.3
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.22.3'
+          cache: true
+
+      - name: 设置 JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: 查看环境
+        run: |
+          flutter --version
+          dart --version
+
+      - name: 获取依赖
+        run: flutter pub get
+
+      - name: 静态分析
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+
+      - name: 构建 APK
+        id: build
+        continue-on-error: true
+        run: flutter build apk --debug
+
+      - name: 查找并整理 APK
+        id: find-apk
+        run: |
+          echo "=== 搜索 APK ==="
+          find /home/runner/work -name "*.apk" -type f 2>/dev/null || true
+          APK=$(find /home/runner/work -name "app-debug.apk" -type f 2>/dev/null | head -1)
+          if [ -z "$APK" ]; then
+            APK=$(find /home/runner/work -name "*.apk" -type f 2>/dev/null | head -1)
+          fi
+          if [ -n "$APK" ]; then
+            echo "✅ 找到 APK: $APK"
+            mkdir -p build/app/outputs/flutter-apk/
+            cp "$APK" build/app/outputs/flutter-apk/
+            echo "✅ 已复制到 build/app/outputs/flutter-apk/"
+          else
+            echo "❌ 未找到 APK！"
+            exit 1
+          fi
+
+      - name: 上传 APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: all-pdf-reader-debug
+          path: flutter_pdf_reader/build/app/outputs/flutter-apk/*.apk
+          if-no-files-found: error
