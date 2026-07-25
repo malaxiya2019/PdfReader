@@ -19,7 +19,8 @@ class PdfReaderPage extends StatefulWidget {
   State<PdfReaderPage> createState() => _PdfReaderPageState();
 }
 
-class _PdfReaderPageState extends State<PdfReaderPage> {
+class _PdfReaderPageState extends State<PdfReaderPage>
+    with SingleTickerProviderStateMixin {
   final GlobalKey<SfPdfViewerState> _pdfViewerKey = GlobalKey();
   PdfViewerController? _pdfViewerController;
   bool _isFullscreen = false;
@@ -31,11 +32,22 @@ class _PdfReaderPageState extends State<PdfReaderPage> {
   bool _showSearchBar = false;
   bool _searchInitialized = false;
   final TextEditingController _searchController = TextEditingController();
+  late AnimationController _controlsController;
+  late Animation<double> _controlsAnimation;
 
   @override
   void initState() {
     super.initState();
     _pdfViewerController = PdfViewerController();
+    _controlsController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 250),
+    );
+    _controlsAnimation = CurvedAnimation(
+      parent: _controlsController,
+      curve: Curves.easeInOut,
+    );
+    _controlsController.value = 1.0;
   }
 
   @override
@@ -47,13 +59,24 @@ class _PdfReaderPageState extends State<PdfReaderPage> {
       DeviceOrientation.landscapeRight,
     ]);
     _searchController.dispose();
+    _controlsController.dispose();
     _pdfViewerController?.dispose();
     super.dispose();
   }
 
+  void _toggleControls() {
+    if (_showControls) {
+      _controlsController.reverse();
+    } else {
+      _controlsController.forward();
+    }
+    setState(() => _showControls = !_showControls);
+  }
+
   void _toggleFullscreen() {
-    setState(() => _isFullscreen = !_isFullscreen);
-    if (_isFullscreen) {
+    final goingFullscreen = !_isFullscreen;
+    setState(() => _isFullscreen = goingFullscreen);
+    if (goingFullscreen) {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
       SystemChrome.setPreferredOrientations([
         DeviceOrientation.landscapeLeft,
@@ -68,6 +91,7 @@ class _PdfReaderPageState extends State<PdfReaderPage> {
         DeviceOrientation.landscapeLeft,
         DeviceOrientation.landscapeRight,
       ]);
+      _controlsController.forward();
     }
   }
 
@@ -122,7 +146,9 @@ class _PdfReaderPageState extends State<PdfReaderPage> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(_isBookmarked ? '已添加书签 - 第 $_currentPage 页' : '已删除书签'),
+          content: Text(
+            _isBookmarked ? '已添加书签 - 第 $_currentPage 页' : '已删除书签',
+          ),
           duration: const Duration(seconds: 1),
           behavior: SnackBarBehavior.floating,
         ),
@@ -133,7 +159,6 @@ class _PdfReaderPageState extends State<PdfReaderPage> {
   void _performSearch() {
     final text = _searchController.text.trim();
     if (text.isEmpty) {
-      // clearSearch not available in v24, clear with empty search
       _pdfViewerController?.searchText('');
       setState(() => _searchInitialized = false);
       return;
@@ -144,8 +169,7 @@ class _PdfReaderPageState extends State<PdfReaderPage> {
 
   void _clearSearch() {
     _searchController.clear();
-    // clearSearch not available in v24, clear with empty search
-      _pdfViewerController?.searchText('');
+    _pdfViewerController?.searchText('');
     setState(() {
       _searchInitialized = false;
       _showSearchBar = false;
@@ -166,9 +190,10 @@ class _PdfReaderPageState extends State<PdfReaderPage> {
       return;
     }
 
+    final theme = Theme.of(context);
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF1A1A2E),
+      backgroundColor: theme.cardColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -192,11 +217,7 @@ class _PdfReaderPageState extends State<PdfReaderPage> {
               const SizedBox(height: 16),
               Text(
                 '书签列表 (${bookmarks.length})',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: theme.textTheme.titleLarge,
               ),
               const SizedBox(height: 12),
               ...bookmarks.map((b) => ListTile(
@@ -204,17 +225,14 @@ class _PdfReaderPageState extends State<PdfReaderPage> {
                       width: 36,
                       height: 36,
                       decoration: BoxDecoration(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .primary
-                            .withOpacity(0.12),
+                        color: theme.colorScheme.primary.withOpacity(0.12),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Center(
                         child: Text(
                           '${b.page}',
                           style: TextStyle(
-                            color: Theme.of(context).colorScheme.primary,
+                            color: theme.colorScheme.primary,
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
                           ),
@@ -223,18 +241,24 @@ class _PdfReaderPageState extends State<PdfReaderPage> {
                     ),
                     title: Text(
                       '第 ${b.page} 页',
-                      style: const TextStyle(color: Colors.white, fontSize: 14),
+                      style: TextStyle(
+                        color: theme.colorScheme.onSurface,
+                        fontSize: 14,
+                      ),
                     ),
                     subtitle: Text(
                       _formatTime(b.created),
                       style: TextStyle(
-                        color: Colors.grey.withOpacity(0.6),
+                        color: theme.colorScheme.onSurface.withOpacity(0.5),
                         fontSize: 12,
                       ),
                     ),
                     trailing: IconButton(
-                      icon: Icon(Icons.delete_outline,
-                          color: Colors.grey.withOpacity(0.5), size: 20),
+                      icon: Icon(
+                        Icons.delete_outline,
+                        color: theme.colorScheme.onSurface.withOpacity(0.4),
+                        size: 20,
+                      ),
                       onPressed: () async {
                         await BookmarkService.removeBookmark(
                             widget.filePath, b.page);
@@ -292,11 +316,20 @@ class _PdfReaderPageState extends State<PdfReaderPage> {
         body: Stack(
           children: [
             GestureDetector(
-              onTap: () => setState(() => _showControls = !_showControls),
+              onTap: _toggleControls,
               child: readerWidget,
             ),
-            if (_showControls) _buildTopBar(theme),
-            if (_showControls) _buildBottomBar(theme),
+            // Fullscreen top bar
+            FadeTransition(
+              opacity: _controlsAnimation,
+              child: _showControls ? _buildFullscreenTopBar(theme) : const SizedBox.shrink(),
+            ),
+            // Fullscreen bottom bar
+            FadeTransition(
+              opacity: _controlsAnimation,
+              child: _showControls ? _buildFullscreenBottomBar(theme) : const SizedBox.shrink(),
+            ),
+            // Search bar
             if (_showSearchBar) _buildSearchBar(theme),
           ],
         ),
@@ -310,7 +343,19 @@ class _PdfReaderPageState extends State<PdfReaderPage> {
         children: [
           readerWidget,
           if (_isLoading)
-            const Center(child: CircularProgressIndicator()),
+            Center(
+              child: TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0.0, end: 1.0),
+                duration: const Duration(milliseconds: 300),
+                builder: (context, value, child) {
+                  return Opacity(
+                    opacity: value,
+                    child: child,
+                  );
+                },
+                child: const CircularProgressIndicator(),
+              ),
+            ),
           _buildPageIndicator(theme),
           if (_showSearchBar) _buildSearchBar(theme),
         ],
@@ -327,30 +372,34 @@ class _PdfReaderPageState extends State<PdfReaderPage> {
       ),
       backgroundColor: const Color(0xFF1A1A2E),
       actions: [
-        // Search button
         IconButton(
-          icon: Icon(
-            _showSearchBar ? Icons.search_off : Icons.search,
+          icon: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 200),
+            child: Icon(
+              _showSearchBar ? Icons.search_off : Icons.search,
+              key: ValueKey('search_$_showSearchBar'),
+            ),
           ),
           onPressed: () => setState(() => _showSearchBar = !_showSearchBar),
           tooltip: '搜索',
         ),
-        // Bookmarks list
         IconButton(
           icon: const Icon(Icons.bookmark_outline),
           onPressed: _showBookmarksList,
           tooltip: '书签列表',
         ),
-        // Bookmark toggle
         IconButton(
-          icon: Icon(
-            _isBookmarked ? Icons.bookmark : Icons.bookmark_border,
-            color: _isBookmarked ? Colors.amber : null,
+          icon: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 200),
+            child: Icon(
+              _isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+              key: ValueKey('bookmark_$_isBookmarked'),
+              color: _isBookmarked ? Colors.amber : null,
+            ),
           ),
           onPressed: _toggleBookmark,
           tooltip: _isBookmarked ? '删除书签' : '添加书签',
         ),
-        // Fullscreen
         IconButton(
           icon: const Icon(Icons.fullscreen),
           onPressed: _toggleFullscreen,
@@ -360,7 +409,7 @@ class _PdfReaderPageState extends State<PdfReaderPage> {
     );
   }
 
-  Widget _buildTopBar(ThemeData theme) {
+  Widget _buildFullscreenTopBar(ThemeData theme) {
     return Positioned(
       top: 0,
       left: 0,
@@ -387,9 +436,13 @@ class _PdfReaderPageState extends State<PdfReaderPage> {
               ),
             ),
             IconButton(
-              icon: Icon(
-                _isBookmarked ? Icons.bookmark : Icons.bookmark_border,
-                color: _isBookmarked ? Colors.amber : Colors.white70,
+              icon: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                child: Icon(
+                  _isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                  key: ValueKey('fs_bookmark_$_isBookmarked'),
+                  color: _isBookmarked ? Colors.amber : Colors.white70,
+                ),
               ),
               onPressed: _toggleBookmark,
               tooltip: _isBookmarked ? '删除书签' : '添加书签',
@@ -405,7 +458,7 @@ class _PdfReaderPageState extends State<PdfReaderPage> {
     );
   }
 
-  Widget _buildBottomBar(ThemeData theme) {
+  Widget _buildFullscreenBottomBar(ThemeData theme) {
     return Positioned(
       bottom: 0,
       left: 0,
@@ -427,12 +480,22 @@ class _PdfReaderPageState extends State<PdfReaderPage> {
                   ? () => _pdfViewerController?.previousPage()
                   : null,
             ),
-            Text(
-              '$_currentPage / $_totalPages',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
+            GestureDetector(
+              onTap: _showPageJumpDialog,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  '$_currentPage / $_totalPages',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ),
             ),
             IconButton(
@@ -452,7 +515,7 @@ class _PdfReaderPageState extends State<PdfReaderPage> {
       bottom: 16,
       right: 16,
       child: GestureDetector(
-        onTap: () => _showPageJumpDialog(),
+        onTap: _showPageJumpDialog,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
@@ -487,62 +550,75 @@ class _PdfReaderPageState extends State<PdfReaderPage> {
       left: 0,
       right: 0,
       child: Material(
-        color: const Color(0xFF1A1A2E),
+        color: theme.cardColor,
         elevation: 4,
-        child: Padding(
-          padding: EdgeInsets.only(
-            top: _isFullscreen ? 0 : MediaQuery.of(context).padding.top + 4,
-            left: 12,
-            right: 12,
-            bottom: 8,
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _searchController,
-                  autofocus: true,
-                  style: const TextStyle(color: Colors.white, fontSize: 14),
-                  decoration: InputDecoration(
-                    hintText: '搜索 PDF 内容...',
-                    hintStyle:
-                        TextStyle(color: Colors.grey.withOpacity(0.5), fontSize: 14),
-                    filled: true,
-                    fillColor: const Color(0xFF2A2A3E),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide.none,
+        child: AnimatedSize(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeInOut,
+          child: Padding(
+            padding: EdgeInsets.only(
+              top: _isFullscreen ? 0 : MediaQuery.of(context).padding.top + 4,
+              left: 12,
+              right: 12,
+              bottom: 8,
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _searchController,
+                    autofocus: true,
+                    style: TextStyle(
+                      color: theme.colorScheme.onSurface,
+                      fontSize: 14,
                     ),
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    suffixIcon: _searchController.text.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.clear, size: 18),
-                            color: Colors.grey,
-                            onPressed: _clearSearch,
-                          )
-                        : null,
+                    decoration: InputDecoration(
+                      hintText: '搜索 PDF 内容...',
+                      hintStyle: TextStyle(
+                        color: theme.colorScheme.onSurface.withOpacity(0.4),
+                        fontSize: 14,
+                      ),
+                      filled: true,
+                      fillColor: theme.colorScheme.onSurface.withOpacity(0.08),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
+                      suffixIcon: _searchController.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear, size: 18),
+                              color: theme.colorScheme.onSurface.withOpacity(0.5),
+                              onPressed: _clearSearch,
+                            )
+                          : null,
+                    ),
+                    onSubmitted: (_) => _performSearch(),
+                    onChanged: (_) {
+                      setState(() {});
+                      _performSearch();
+                    },
                   ),
-                  onSubmitted: (_) => _performSearch(),
-                  onChanged: (_) {
-                    setState(() {});
-                    _performSearch();
-                  },
                 ),
-              ),
-              const SizedBox(width: 8),
-              if (_searchInitialized) ...[
-                Text(
-                  '使用搜索面板导航',
-                  style: TextStyle(color: Colors.grey.withOpacity(0.5), fontSize: 12),
+                const SizedBox(width: 8),
+                if (_searchInitialized)
+                  Text(
+                    '使用搜索面板导航',
+                    style: TextStyle(
+                      color: theme.colorScheme.onSurface.withOpacity(0.4),
+                      fontSize: 12,
+                    ),
+                  ),
+                IconButton(
+                  icon: const Icon(Icons.close, size: 20),
+                  color: theme.colorScheme.onSurface.withOpacity(0.5),
+                  onPressed: _clearSearch,
                 ),
               ],
-              IconButton(
-                icon: const Icon(Icons.close, size: 20),
-                color: Colors.grey,
-                onPressed: _clearSearch,
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -551,23 +627,33 @@ class _PdfReaderPageState extends State<PdfReaderPage> {
 
   void _showPageJumpDialog() {
     final controller = TextEditingController(text: '$_currentPage');
+    final theme = Theme.of(context);
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1A2E),
-        title: const Text(
+        backgroundColor: theme.cardColor,
+        title: Text(
           '跳转到页面',
-          style: TextStyle(color: Colors.white, fontSize: 18),
+          style: TextStyle(
+            color: theme.colorScheme.onSurface,
+            fontSize: 18,
+          ),
         ),
         content: TextField(
           controller: controller,
           keyboardType: TextInputType.number,
-          style: const TextStyle(color: Colors.white, fontSize: 16),
+          style: TextStyle(
+            color: theme.colorScheme.onSurface,
+            fontSize: 16,
+          ),
           decoration: InputDecoration(
             hintText: '输入页码 (1-$_totalPages)',
-            hintStyle: TextStyle(color: Colors.grey.withOpacity(0.5)),
+            hintStyle: TextStyle(
+              color: theme.colorScheme.onSurface.withOpacity(0.4),
+            ),
             filled: true,
-            fillColor: const Color(0xFF2A2A3E),
+            fillColor: theme.colorScheme.onSurface.withOpacity(0.08),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
               borderSide: BorderSide.none,
@@ -577,7 +663,10 @@ class _PdfReaderPageState extends State<PdfReaderPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('取消'),
+            child: Text(
+              '取消',
+              style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.6)),
+            ),
           ),
           FilledButton(
             onPressed: () {

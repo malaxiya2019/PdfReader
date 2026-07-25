@@ -12,33 +12,59 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin {
   List<PdfFileInfo> _recentFiles = [];
   List<PdfFileInfo> _favoriteFiles = [];
   bool _isLoading = true;
+  bool _hasError = false;
+  String _errorMessage = '';
+  late AnimationController _fadeController;
+  late Animation<double> _fadeAnimation;
 
   @override
   void initState() {
     super.initState();
+    _fadeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+    _fadeAnimation = CurvedAnimation(
+      parent: _fadeController,
+      curve: Curves.easeIn,
+    );
     _loadData();
   }
 
+  @override
+  void dispose() {
+    _fadeController.dispose();
+    super.dispose();
+  }
+
   Future<void> _loadData() async {
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _hasError = false;
+      _errorMessage = '';
+    });
+
     try {
       final allFiles = await PdfScannerService.scanAllCommonDirectories();
       if (mounted) {
         setState(() {
-          // 最近文件：按时间取前10个
           _recentFiles = allFiles.take(10).toList();
-          // 收藏文件
           _favoriteFiles = allFiles.where((f) => f.isFavorite).take(10).toList();
           _isLoading = false;
         });
+        _fadeController.forward(from: 0);
       }
-    } catch (_) {
+    } catch (e) {
       if (mounted) {
-        setState(() => _isLoading = false);
+        setState(() {
+          _isLoading = false;
+          _hasError = true;
+          _errorMessage = '扫描失败: $e';
+        });
       }
     }
   }
@@ -64,7 +90,10 @@ class _HomePageState extends State<HomePage> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('打开文件失败: $e')),
+          SnackBar(
+            content: Text('打开文件失败: $e'),
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       }
     }
@@ -73,7 +102,10 @@ class _HomePageState extends State<HomePage> {
   void _openFile(PdfFileInfo file) {
     if (!File(file.path).existsSync()) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('文件不存在或已被移动')),
+        const SnackBar(
+          content: Text('文件不存在或已被移动'),
+          behavior: SnackBarBehavior.floating,
+        ),
       );
       return;
     }
@@ -89,7 +121,13 @@ class _HomePageState extends State<HomePage> {
     final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('All PDF Reader'),
+        title: Text(
+          'All PDF Reader',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: theme.colorScheme.onSurface,
+          ),
+        ),
         centerTitle: true,
         actions: [
           IconButton(
@@ -101,6 +139,7 @@ class _HomePageState extends State<HomePage> {
       ),
       body: RefreshIndicator(
         onRefresh: _loadData,
+        color: theme.colorScheme.primary,
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
@@ -108,79 +147,39 @@ class _HomePageState extends State<HomePage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Logo & Header
-              Center(
-                child: Column(
-                  children: [
-                    Container(
-                      width: 72,
-                      height: 72,
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primary.withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(18),
-                      ),
-                      child: Icon(
-                        Icons.picture_as_pdf_rounded,
-                        size: 36,
-                        color: theme.colorScheme.primary,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'All PDF Reader',
-                      style: theme.textTheme.headlineMedium,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '高颜值暗黑风 PDF 阅读器',
-                      style: theme.textTheme.bodyMedium,
-                    ),
-                    const SizedBox(height: 20),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 48,
-                      child: FilledButton.icon(
-                        onPressed: _pickAndOpenFile,
-                        icon: const Icon(Icons.folder_open, size: 20),
-                        label: const Text('打开 PDF 文件'),
-                        style: FilledButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              _buildHeader(theme),
 
               const SizedBox(height: 32),
 
               if (_isLoading)
-                const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(40),
-                    child: CircularProgressIndicator(),
-                  ),
-                )
+                _buildShimmerLoading(theme)
+              else if (_hasError)
+                _buildErrorState(theme)
               else ...[
                 // Favorites Section
                 if (_favoriteFiles.isNotEmpty) ...[
-                  _buildSectionHeader('⭐ 收藏文件', Icons.star, Colors.amber),
+                  _buildSectionHeader('收藏文件', Icons.star, Colors.amber),
                   const SizedBox(height: 8),
-                  ..._favoriteFiles.map(
-                    (f) => _buildRecentItem(f, theme),
+                  ..._favoriteFiles.asMap().entries.map(
+                    (entry) => _buildAnimatedItem(
+                      index: entry.key,
+                      child: _buildRecentItem(entry.value, theme),
+                    ),
                   ),
                   const SizedBox(height: 24),
                 ],
 
                 // Recent Files Section
-                _buildSectionHeader('📄 最近文件', Icons.access_time, null),
+                _buildSectionHeader('最近文件', Icons.access_time, null),
                 const SizedBox(height: 8),
                 if (_recentFiles.isEmpty)
                   _buildEmptyState(theme)
                 else
-                  ..._recentFiles.map(
-                    (f) => _buildRecentItem(f, theme),
+                  ..._recentFiles.asMap().entries.map(
+                    (entry) => _buildAnimatedItem(
+                      index: entry.key + _favoriteFiles.length,
+                      child: _buildRecentItem(entry.value, theme),
+                    ),
                   ),
 
                 const SizedBox(height: 16),
@@ -188,9 +187,9 @@ class _HomePageState extends State<HomePage> {
                 // Stats
                 Center(
                   child: Text(
-                    '已扫描 ${_recentFiles.length + (_favoriteFiles.isNotEmpty ? _favoriteFiles.length : 0)} 个 PDF 文件',
+                    '共 ${_recentFiles.length + (_favoriteFiles.isNotEmpty ? _favoriteFiles.length : 0)} 个 PDF 文件',
                     style: TextStyle(
-                      color: Colors.grey.withOpacity(0.4),
+                      color: theme.colorScheme.onSurface.withOpacity(0.3),
                       fontSize: 12,
                     ),
                   ),
@@ -203,15 +202,142 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Widget _buildHeader(ThemeData theme) {
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: Center(
+        child: Column(
+          children: [
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primary.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: Icon(
+                Icons.picture_as_pdf_rounded,
+                size: 36,
+                color: theme.colorScheme.primary,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'All PDF Reader',
+              style: theme.textTheme.headlineMedium,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              '高颜值暗黑风 PDF 阅读器',
+              style: theme.textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: FilledButton.icon(
+                onPressed: _pickAndOpenFile,
+                icon: const Icon(Icons.folder_open, size: 20),
+                label: const Text('打开 PDF 文件'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildShimmerLoading(ThemeData theme) {
+    return Column(
+      children: [
+        // Header shimmer
+        _buildSectionHeader('最近文件', Icons.access_time, null),
+        const SizedBox(height: 8),
+        // Shimmer items
+        ...List.generate(5, (i) => _buildShimmerItem(theme)),
+      ],
+    );
+  }
+
+  Widget _buildShimmerItem(ThemeData theme) {
+    return Card(
+      color: theme.cardColor,
+      margin: const EdgeInsets.only(bottom: 6),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: _ShimmerWidget(
+        child: ListTile(
+          dense: true,
+          leading: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: Colors.grey.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+          title: Container(
+            height: 12,
+            width: 150,
+            decoration: BoxDecoration(
+              color: Colors.grey.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          subtitle: Container(
+            height: 10,
+            width: 100,
+            margin: const EdgeInsets.only(top: 6),
+            decoration: BoxDecoration(
+              color: Colors.grey.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          trailing: Container(
+            width: 20,
+            height: 20,
+            decoration: BoxDecoration(
+              color: Colors.grey.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAnimatedItem({
+    required int index,
+    required Widget child,
+  }) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: Duration(milliseconds: 400 + (index * 80)),
+      curve: Curves.easeOutCubic,
+      builder: (context, value, childWidget) {
+        return Opacity(
+          opacity: value,
+          child: Transform.translate(
+            offset: Offset(0, 20 * (1 - value)),
+            child: childWidget,
+          ),
+        );
+      },
+      child: child,
+    );
+  }
+
   Widget _buildSectionHeader(String title, IconData icon, Color? iconColor) {
+    final theme = Theme.of(context);
     return Row(
       children: [
-        Icon(icon, size: 18, color: iconColor ?? Colors.grey),
+        Icon(icon, size: 18, color: iconColor ?? theme.colorScheme.onSurface.withOpacity(0.5)),
         const SizedBox(width: 8),
         Text(
           title,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: theme.colorScheme.onSurface,
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
@@ -227,44 +353,47 @@ class _HomePageState extends State<HomePage> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
       ),
-      child: ListTile(
-        dense: true,
-        leading: Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: theme.colorScheme.primary.withOpacity(0.12),
-            borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(10),
+        onTap: () => _openFile(file),
+        child: ListTile(
+          dense: true,
+          leading: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primary.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(
+              Icons.picture_as_pdf_rounded,
+              color: theme.colorScheme.primary,
+              size: 20,
+            ),
           ),
-          child: Icon(
-            Icons.picture_as_pdf_rounded,
-            color: theme.colorScheme.primary,
+          title: Text(
+            file.name,
+            style: TextStyle(
+              color: theme.colorScheme.onSurface,
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          subtitle: Text(
+            '${file.sizeFormatted} · ${file.dateFormatted}',
+            style: TextStyle(
+              color: theme.colorScheme.onSurface.withOpacity(0.5),
+              fontSize: 11,
+            ),
+          ),
+          trailing: Icon(
+            Icons.chevron_right,
+            color: theme.colorScheme.onSurface.withOpacity(0.3),
             size: 20,
           ),
         ),
-        title: Text(
-          file.name,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 13,
-            fontWeight: FontWeight.w500,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        subtitle: Text(
-          '${file.sizeFormatted} · ${file.dateFormatted}',
-          style: TextStyle(
-            color: Colors.grey.withOpacity(0.6),
-            fontSize: 11,
-          ),
-        ),
-        trailing: Icon(
-          Icons.chevron_right,
-          color: Colors.grey.withOpacity(0.4),
-          size: 20,
-        ),
-        onTap: () => _openFile(file),
       ),
     );
   }
@@ -272,31 +401,132 @@ class _HomePageState extends State<HomePage> {
   Widget _buildEmptyState(ThemeData theme) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 32),
+        padding: const EdgeInsets.symmetric(vertical: 48),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               Icons.folder_open,
-              size: 48,
-              color: Colors.grey.withOpacity(0.3),
+              size: 64,
+              color: theme.colorScheme.onSurface.withOpacity(0.15),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             Text(
               '未找到 PDF 文件',
-              style: TextStyle(color: Colors.grey.withOpacity(0.6)),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              '点击上方按钮打开文件，或切换到"文件"标签扫描',
               style: TextStyle(
-                color: Colors.grey.withOpacity(0.4),
-                fontSize: 12,
+                color: theme.colorScheme.onSurface.withOpacity(0.5),
+                fontSize: 16,
               ),
-              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '点击上方按钮打开文件',
+              style: TextStyle(
+                color: theme.colorScheme.onSurface.withOpacity(0.3),
+                fontSize: 13,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '或切换到"文件"标签扫描设备',
+              style: TextStyle(
+                color: theme.colorScheme.onSurface.withOpacity(0.3),
+                fontSize: 13,
+              ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildErrorState(ThemeData theme) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 48),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.error_outline,
+              size: 64,
+              color: theme.colorScheme.error.withOpacity(0.5),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              '加载失败',
+              style: TextStyle(
+                color: theme.colorScheme.onSurface.withOpacity(0.7),
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _errorMessage,
+              style: TextStyle(
+                color: theme.colorScheme.onSurface.withOpacity(0.4),
+                fontSize: 13,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            FilledButton.tonalIcon(
+              onPressed: _loadData,
+              icon: const Icon(Icons.refresh, size: 18),
+              label: const Text('重试'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// 闪烁骨架屏动画组件
+class _ShimmerWidget extends StatefulWidget {
+  final Widget child;
+
+  const _ShimmerWidget({required this.child});
+
+  @override
+  State<_ShimmerWidget> createState() => _ShimmerWidgetState();
+}
+
+class _ShimmerWidgetState extends State<_ShimmerWidget>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat(reverse: true);
+    _animation = Tween<double>(begin: 0.3, end: 0.7).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        return Opacity(
+          opacity: _animation.value,
+          child: child,
+        );
+      },
+      child: widget.child,
     );
   }
 }
