@@ -5,6 +5,7 @@ import 'theme/app_theme.dart';
 import 'router/app_router.dart';
 import 'features/home/home_page.dart';
 import 'features/files/files_page.dart';
+import 'features/tools/tools_page.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -87,11 +88,7 @@ class _MainShellState extends State<MainShell> {
   final List<Widget> _pages = const [
     HomePage(),
     FilesPage(),
-    _PlaceholderPage(
-      icon: Icons.auto_fix_high,
-      title: '工具箱',
-      subtitle: '即将上线',
-    ),
+    ToolsPage(),
   ];
 
   void _showThemeSelector() {
@@ -202,56 +199,10 @@ class _MainShellState extends State<MainShell> {
           ),
         ],
       ),
-      floatingActionButton: _currentIndex == 1
-          ? null
-          : FloatingActionButton.small(
-              onPressed: _showThemeSelector,
-              tooltip: '主题切换',
-              child: Icon(AppTheme.themeModeIcon(widget.currentThemeMode)),
-            ),
-    );
-  }
-}
-
-class _PlaceholderPage extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-
-  const _PlaceholderPage({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(title),
-        centerTitle: true,
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 80,
-                color: theme.colorScheme.primary.withOpacity(0.3)),
-            const SizedBox(height: 16),
-            Text(
-              title,
-              style: theme.textTheme.headlineMedium,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              subtitle,
-              style: TextStyle(
-                color: theme.colorScheme.onSurface.withOpacity(0.4),
-              ),
-            ),
-          ],
-        ),
+      floatingActionButton: FloatingActionButton.small(
+        onPressed: _showThemeSelector,
+        tooltip: '主题切换',
+        child: Icon(AppTheme.themeModeIcon(widget.currentThemeMode)),
       ),
     );
   }
