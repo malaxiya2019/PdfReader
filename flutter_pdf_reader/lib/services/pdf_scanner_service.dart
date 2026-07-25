@@ -19,7 +19,7 @@ class PdfScannerService {
   /// 收藏文件路径集合
   static Future<Set<String>> getFavorites() async {
     final prefs = await SharedPreferences.getInstance();
-    return (prefs.getStringList('favorites') ?? {}).toSet();
+    return (prefs.getStringList('favorites') ?? <String>[]).toSet();
   }
 
   static Future<void> toggleFavorite(String path) async {
