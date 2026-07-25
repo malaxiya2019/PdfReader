@@ -133,7 +133,8 @@ class _PdfReaderPageState extends State<PdfReaderPage> {
   void _performSearch() {
     final text = _searchController.text.trim();
     if (text.isEmpty) {
-      _pdfViewerController?.clearSearch();
+      // clearSearch not available in v24, clear with empty search
+      _pdfViewerController?.searchText('');
       setState(() => _searchInitialized = false);
       return;
     }
@@ -143,7 +144,8 @@ class _PdfReaderPageState extends State<PdfReaderPage> {
 
   void _clearSearch() {
     _searchController.clear();
-    _pdfViewerController?.clearSearch();
+    // clearSearch not available in v24, clear with empty search
+      _pdfViewerController?.searchText('');
     setState(() {
       _searchInitialized = false;
       _showSearchBar = false;
@@ -280,7 +282,6 @@ class _PdfReaderPageState extends State<PdfReaderPage> {
       key: _pdfViewerKey,
       controller: _pdfViewerController!,
       enableDoubleTapZooming: true,
-      canShowBookmarks: true,
       onDocumentLoaded: _onDocumentLoaded,
       onPageChanged: _onPageChanged,
     );
@@ -531,15 +532,9 @@ class _PdfReaderPageState extends State<PdfReaderPage> {
               ),
               const SizedBox(width: 8),
               if (_searchInitialized) ...[
-                IconButton(
-                  icon: const Icon(Icons.chevron_left, size: 20),
-                  color: Colors.white70,
-                  onPressed: () => _pdfViewerController?.searchPrevious(),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.chevron_right, size: 20),
-                  color: Colors.white70,
-                  onPressed: () => _pdfViewerController?.searchNext(),
+                Text(
+                  '使用搜索面板导航',
+                  style: TextStyle(color: Colors.grey.withOpacity(0.5), fontSize: 12),
                 ),
               ],
               IconButton(
