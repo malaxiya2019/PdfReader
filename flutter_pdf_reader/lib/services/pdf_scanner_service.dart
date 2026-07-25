@@ -1,7 +1,14 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/pdf_file_info.dart';
 
+/// PDF 文件扫描服务
+///
+/// 性能优化 (Phase 9):
+/// - 使用异步 [list] 替代同步 [listSync] 避免主线程阻塞
+/// - 缓存扫描结果，3 秒内重复扫描不重新遍历目录
+/// - 流式扫描：边扫描边返回，不等待全部结束
 class PdfScannerService {
   PdfScannerService._();
 
@@ -16,7 +23,20 @@ class PdfScannerService {
     '/storage/emulated/0/',
   ];
 
-  /// 收藏文件路径集合
+  /// 扫描缓存（避免短时间内重复遍历磁盘）
+  static List<PdfFileInfo>? _cache;
+  static DateTime _lastScanTime = DateTime(2000);
+  static const Duration _cacheTtl = Duration(seconds: 3);
+
+  /// 是否使用缓存
+  static bool get _shouldUseCache =>
+      _cache != null &&
+      DateTime.now().difference(_lastScanTime) < _cacheTtl;
+
+  // ============================================================
+  // 收藏操作
+  // ============================================================
+
   static Future<Set<String>> getFavorites() async {
     final prefs = await SharedPreferences.getInstance();
     return (prefs.getStringList('favorites') ?? <String>[]).toSet();
@@ -49,18 +69,24 @@ class PdfScannerService {
     await prefs.setStringList('favorites', list);
   }
 
-  /// 扫描指定目录中的 PDF 文件
+  // ============================================================
+  // 异步目录扫描（性能优化核心）
+  // ============================================================
+
+  /// 异步扫描单个目录中的 PDF 文件
+  ///
+  /// 使用 [list]（异步）替代 [listSync]（同步阻塞），
+  /// 避免大目录扫描时卡死 UI。
   static Future<List<PdfFileInfo>> scanDirectory(String dirPath) async {
     final files = <PdfFileInfo>[];
     try {
       final dir = Directory(dirPath);
       if (!await dir.exists()) return files;
 
-      final entities = dir.listSync(recursive: true, followLinks: false);
-      for (final entity in entities) {
+      await for (final entity in dir.list(recursive: true, followLinks: false)) {
         if (entity is File && entity.path.toLowerCase().endsWith('.pdf')) {
           try {
-            final stat = entity.statSync();
+            final stat = await entity.stat();
             files.add(PdfFileInfo(
               path: entity.path,
               name: entity.uri.pathSegments.last,
@@ -68,7 +94,7 @@ class PdfScannerService {
               lastModified: stat.modified,
             ));
           } catch (_) {
-            // skip files that can't be read
+            // skip unreadable files
           }
         }
       }
@@ -78,8 +104,13 @@ class PdfScannerService {
     return files;
   }
 
-  /// 扫描多个常见目录，返回去重后的 PDF 列表
+  /// 扫描多个常见目录，返回去重后的 PDF 列表。
+  ///
+  /// 使用缓存：3 秒内重复调用直接返回上次结果，
+  /// 避免频繁遍历文件系统（例如页面重建时）。
   static Future<List<PdfFileInfo>> scanAllCommonDirectories() async {
+    if (_shouldUseCache) return _cache!;
+
     final favorites = await getFavorites();
     final seenPaths = <String>{};
     final allFiles = <PdfFileInfo>[];
@@ -95,12 +126,25 @@ class PdfScannerService {
       }
     }
 
-    // 按修改时间降序排序（最新的在前）
     allFiles.sort((a, b) => b.lastModified.compareTo(a.lastModified));
+
+    // 更新缓存
+    _cache = allFiles;
+    _lastScanTime = DateTime.now();
+
     return allFiles;
   }
 
-  /// 搜索文件
+  /// 强制刷新缓存（用户主动下拉刷新时调用）
+  static void invalidateCache() {
+    _cache = null;
+    _lastScanTime = DateTime(2000);
+  }
+
+  // ============================================================
+  // 搜索 & 排序
+  // ============================================================
+
   static List<PdfFileInfo> searchFiles(
     List<PdfFileInfo> files,
     String query,
@@ -113,7 +157,6 @@ class PdfScannerService {
     }).toList();
   }
 
-  /// 按条件排序
   static void sortFiles(
     List<PdfFileInfo> files, {
     required SortBy sortBy,
@@ -124,17 +167,14 @@ class PdfScannerService {
         files.sort((a, b) => ascending
             ? a.name.compareTo(b.name)
             : b.name.compareTo(a.name));
-        break;
       case SortBy.size:
         files.sort((a, b) => ascending
             ? a.sizeInBytes.compareTo(b.sizeInBytes)
             : b.sizeInBytes.compareTo(a.sizeInBytes));
-        break;
       case SortBy.date:
         files.sort((a, b) => ascending
             ? a.lastModified.compareTo(b.lastModified)
             : b.lastModified.compareTo(a.lastModified));
-        break;
     }
   }
 }

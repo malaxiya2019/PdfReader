@@ -7,6 +7,7 @@ import 'features/home/home_page.dart';
 import 'features/files/files_page.dart';
 import 'features/tools/tools_page.dart';
 import 'services/ai/ai_factory.dart';
+import 'services/thumbnail_cache_service.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,6 +20,9 @@ void main() {
 
   // 初始化 AI 服务
   AIFactory.init();
+
+  // 初始化缩略图缓存（Phase 9 性能优化）
+  ThumbnailCacheService.init();
 
   runApp(const AllPdfReaderApp());
 }
@@ -170,10 +174,7 @@ class _MainShellState extends State<MainShell> {
         switchInCurve: Curves.easeInOut,
         switchOutCurve: Curves.easeInOut,
         transitionBuilder: (child, animation) {
-          return FadeTransition(
-            opacity: animation,
-            child: child,
-          );
+          return FadeTransition(opacity: animation, child: child);
         },
         child: KeyedSubtree(
           key: ValueKey('page_$_currentIndex'),

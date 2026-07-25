@@ -12,14 +12,15 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin {
-  List<PdfFileInfo> _recentFiles = [];
-  List<PdfFileInfo> _favoriteFiles = [];
+class _HomePageState extends State<HomePage>
+    with SingleTickerProviderStateMixin {
+  List<PdfFileInfo> _recentFiles = const [];
+  List<PdfFileInfo> _favoriteFiles = const [];
   bool _isLoading = true;
   bool _hasError = false;
   String _errorMessage = '';
-  late AnimationController _fadeController;
-  late Animation<double> _fadeAnimation;
+  late final AnimationController _fadeController;
+  late final Animation<double> _fadeAnimation;
 
   @override
   void initState() {
@@ -49,11 +50,13 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     });
 
     try {
+      // 先检查缓存，不强制刷新
       final allFiles = await PdfScannerService.scanAllCommonDirectories();
       if (mounted) {
         setState(() {
           _recentFiles = allFiles.take(10).toList();
-          _favoriteFiles = allFiles.where((f) => f.isFavorite).take(10).toList();
+          _favoriteFiles =
+              allFiles.where((f) => f.isFavorite).take(10).toList();
           _isLoading = false;
         });
         _fadeController.forward(from: 0);
@@ -69,11 +72,17 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     }
   }
 
+  /// 强制刷新（清缓存 + 重新扫描）
+  Future<void> _forceRefresh() async {
+    PdfScannerService.invalidateCache();
+    await _loadData();
+  }
+
   Future<void> _pickAndOpenFile() async {
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
-        allowedExtensions: ['pdf'],
+        allowedExtensions: const ['pdf'],
       );
 
       if (result != null && result.files.single.path != null) {
@@ -132,13 +141,13 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: _loadData,
+            onPressed: _forceRefresh,
             tooltip: '刷新',
           ),
         ],
       ),
       body: RefreshIndicator(
-        onRefresh: _loadData,
+        onRefresh: _forceRefresh,
         color: theme.colorScheme.primary,
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -146,9 +155,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Logo & Header
               _buildHeader(theme),
-
               const SizedBox(height: 32),
 
               if (_isLoading)
@@ -156,38 +163,34 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               else if (_hasError)
                 _buildErrorState(theme)
               else ...[
-                // Favorites Section
                 if (_favoriteFiles.isNotEmpty) ...[
-                  _buildSectionHeader('收藏文件', Icons.star, Colors.amber),
+                  _buildSectionHeader(
+                      '收藏文件', Icons.star, Colors.amber, theme),
                   const SizedBox(height: 8),
-                  ..._favoriteFiles.asMap().entries.map(
-                    (entry) => _buildAnimatedItem(
-                      index: entry.key,
-                      child: _buildRecentItem(entry.value, theme),
+                  for (int i = 0; i < _favoriteFiles.length; i++)
+                    _buildAnimatedItem(
+                      index: i,
+                      child: _buildRecentItem(_favoriteFiles[i], theme),
                     ),
-                  ),
                   const SizedBox(height: 24),
                 ],
 
-                // Recent Files Section
-                _buildSectionHeader('最近文件', Icons.access_time, null),
+                _buildSectionHeader(
+                    '最近文件', Icons.access_time, null, theme),
                 const SizedBox(height: 8),
                 if (_recentFiles.isEmpty)
                   _buildEmptyState(theme)
                 else
-                  ..._recentFiles.asMap().entries.map(
-                    (entry) => _buildAnimatedItem(
-                      index: entry.key + _favoriteFiles.length,
-                      child: _buildRecentItem(entry.value, theme),
+                  for (int i = 0; i < _recentFiles.length; i++)
+                    _buildAnimatedItem(
+                      index: i + _favoriteFiles.length,
+                      child: _buildRecentItem(_recentFiles[i], theme),
                     ),
-                  ),
 
                 const SizedBox(height: 16),
-
-                // Stats
                 Center(
                   child: Text(
-                    '共 ${_recentFiles.length + (_favoriteFiles.isNotEmpty ? _favoriteFiles.length : 0)} 个 PDF 文件',
+                    '共 ${_recentFiles.length} 个 PDF 文件',
                     style: TextStyle(
                       color: theme.colorScheme.onSurface.withOpacity(0.3),
                       fontSize: 12,
@@ -222,15 +225,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               ),
             ),
             const SizedBox(height: 12),
-            Text(
-              'All PDF Reader',
-              style: theme.textTheme.headlineMedium,
-            ),
+            Text('All PDF Reader',
+                style: theme.textTheme.headlineMedium),
             const SizedBox(height: 4),
-            Text(
-              '高颜值暗黑风 PDF 阅读器',
-              style: theme.textTheme.bodyMedium,
-            ),
+            Text('高颜值暗黑风 PDF 阅读器',
+                style: theme.textTheme.bodyMedium),
             const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
@@ -250,11 +249,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   Widget _buildShimmerLoading(ThemeData theme) {
     return Column(
       children: [
-        // Header shimmer
-        _buildSectionHeader('最近文件', Icons.access_time, null),
+        _buildSectionHeader('最近文件', Icons.access_time, null, theme),
         const SizedBox(height: 8),
-        // Shimmer items
-        ...List.generate(5, (i) => _buildShimmerItem(theme)),
+        for (int i = 0; i < 5; i++) _buildShimmerItem(theme),
       ],
     );
   }
@@ -263,9 +260,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     return Card(
       color: theme.cardColor,
       margin: const EdgeInsets.only(bottom: 6),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-      ),
+      shape:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       child: _ShimmerWidget(
         child: ListTile(
           dense: true,
@@ -328,11 +324,14 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     );
   }
 
-  Widget _buildSectionHeader(String title, IconData icon, Color? iconColor) {
-    final theme = Theme.of(context);
+  Widget _buildSectionHeader(
+      String title, IconData icon, Color? iconColor, ThemeData theme) {
     return Row(
       children: [
-        Icon(icon, size: 18, color: iconColor ?? theme.colorScheme.onSurface.withOpacity(0.5)),
+        Icon(icon,
+            size: 18,
+            color:
+                iconColor ?? theme.colorScheme.onSurface.withOpacity(0.5)),
         const SizedBox(width: 8),
         Text(
           title,
@@ -350,9 +349,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     return Card(
       color: theme.cardColor,
       margin: const EdgeInsets.only(bottom: 6),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-      ),
+      shape:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       child: InkWell(
         borderRadius: BorderRadius.circular(10),
         onTap: () => _openFile(file),
@@ -365,9 +363,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               color: theme.colorScheme.primary.withOpacity(0.12),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(
+            child: const Icon(
               Icons.picture_as_pdf_rounded,
-              color: theme.colorScheme.primary,
+              color: null,
               size: 20,
             ),
           ),
@@ -405,11 +403,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.folder_open,
-              size: 64,
-              color: theme.colorScheme.onSurface.withOpacity(0.15),
-            ),
+            Icon(Icons.folder_open,
+                size: 64,
+                color:
+                    theme.colorScheme.onSurface.withOpacity(0.15)),
             const SizedBox(height: 16),
             Text(
               '未找到 PDF 文件',
@@ -447,11 +444,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: theme.colorScheme.error.withOpacity(0.5),
-            ),
+            Icon(Icons.error_outline,
+                size: 64,
+                color: theme.colorScheme.error.withOpacity(0.5)),
             const SizedBox(height: 16),
             Text(
               '加载失败',
@@ -472,7 +467,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             ),
             const SizedBox(height: 24),
             FilledButton.tonalIcon(
-              onPressed: _loadData,
+              onPressed: _forceRefresh,
               icon: const Icon(Icons.refresh, size: 18),
               label: const Text('重试'),
             ),
@@ -495,8 +490,8 @@ class _ShimmerWidget extends StatefulWidget {
 
 class _ShimmerWidgetState extends State<_ShimmerWidget>
     with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _animation;
+  late final AnimationController _controller;
+  late final Animation<double> _animation;
 
   @override
   void initState() {
