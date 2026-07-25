@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:ui' show Rect, Offset;
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 
 
