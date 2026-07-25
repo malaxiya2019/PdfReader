@@ -62,7 +62,7 @@ class _PdfToImagePageState extends State<PdfToImagePage> {
       SnackBar(
         content: Text(result.message),
         behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 3),
+        duration: const Duration(seconds: 4),
       ),
     );
   }
@@ -161,38 +161,47 @@ class _PdfToImagePageState extends State<PdfToImagePage> {
                 selected: {_formatIndex},
                 onSelectionChanged: (v) => setState(() => _formatIndex = v.first),
               ),
-              const SizedBox(height: 8),
-              Text(
-                _formatIndex == 0 ? 'PNG：无损透明背景，文件较大' : 'JPG：有损压缩，文件较小',
-                style: TextStyle(
-                  color: theme.colorScheme.onSurface.withOpacity(0.4),
-                  fontSize: 12,
-                ),
-              ),
               const SizedBox(height: 24),
-              Card(
-                color: theme.cardColor,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+              // 升级提示
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.amber.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.amber.withOpacity(0.3)),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      Icon(Icons.info_outline,
-                          color: theme.colorScheme.primary, size: 20),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          '将导出 $_totalPages 张 ${_formats[_formatIndex].toUpperCase()} 图片',
-                          style: TextStyle(
-                            color: theme.colorScheme.onSurface,
-                            fontSize: 14,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(Icons.warning_amber_rounded,
+                        color: Colors.amber, size: 20),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '功能提示',
+                            style: TextStyle(
+                              color: Colors.amber.shade200,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
-                        ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '当前 Syncfusion v24 不支持直接导出为图片。'
+                            '导出将生成页面占位标记文件。'
+                            '如需完整图片导出功能，请升级到 Syncfusion v25+。',
+                            style: TextStyle(
+                              color: Colors.amber.shade100.withOpacity(0.8),
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 24),
@@ -206,7 +215,7 @@ class _PdfToImagePageState extends State<PdfToImagePage> {
                           child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                         )
                       : const Icon(Icons.image, size: 18),
-                  label: Text(_isProcessing ? '导出中...' : '开始导出'),
+                  label: Text(_isProcessing ? '导出中...' : '导出页面标记'),
                   style: FilledButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
                   ),
