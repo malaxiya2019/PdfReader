@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
+import 'package:syncfusion_flutter_pdf/pdf.dart';
 import '../../services/reading_record_service.dart';
 import '../../services/bookmark_service.dart';
 import '../../services/ai/ai_factory.dart';
@@ -299,24 +300,31 @@ class _PdfReaderPageState extends State<PdfReaderPage>
     return '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}';
   }
 
-  @override
+  // removed misplaced @override
   Future<void> _openAIAssistant() async {
     // 提取 PDF 文本
-    String pdfText = '';
-    String error = '';
+    String pdfText = "";
+    String error = "";
     try {
-      // 先尝试通过阅读器提取文本
-      final text = await _pdfViewerController?.extractText();
-      if (text != null && text.isNotEmpty) {
-        pdfText = text;
+      // 使用 PdfDocument API 提取文本（Syncfusion v24+）
+      final File file = File(widget.filePath);
+      if (await file.exists()) {
+        final bytes = await file.readAsBytes();
+        final PdfDocument doc = PdfDocument(inputBytes: bytes);
+        final StringBuffer buf = StringBuffer();
+        for (int i = 0; i < doc.pages.count; i++) {
+          buf.writeln(doc.pages[i].extractText());
+        }
+        pdfText = buf.toString();
+        doc.dispose();
       }
     } catch (e) {
       error = e.toString();
     }
 
     if (pdfText.isEmpty) {
-      pdfText = '（无法自动提取 PDF 文本。请确保文档包含可提取的文字层，'
-          '而非纯扫描图片。扫描件请使用 Phase 7 OCR 功能识别。）';
+      pdfText = "（无法自动提取 PDF 文本。请确保文档包含可提取的文字层，"
+          "而非纯扫描图片。扫描件请使用 Phase 7 OCR 功能识别。）";
     }
 
     if (!mounted) return;
@@ -331,7 +339,8 @@ class _PdfReaderPageState extends State<PdfReaderPage>
     );
   }
 
-  $old_build
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     final readerWidget = SfPdfViewer.file(
