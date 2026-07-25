@@ -1,6 +1,5 @@
 import 'dart:io';
-import 'dart:typed_data';
-import 'dart:ui' show Rect, Offset, Size;
+import 'dart:ui' show Rect, Offset;
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -416,10 +415,9 @@ class PdfToolService {
       }
 
       final font = PdfStandardFont(PdfFontFamily.helvetica, fontSize);
-      final a = ((colorValue >> 24) & 0xFF).toDouble();
-      final r = ((colorValue >> 16) & 0xFF).toDouble();
-      final g = ((colorValue >> 8) & 0xFF).toDouble();
-      final b = (colorValue & 0xFF).toDouble();
+      final r = (colorValue >> 16) & 0xFF;
+      final g = (colorValue >> 8) & 0xFF;
+      final b = colorValue & 0xFF;
       final color = PdfColor(r, g, b);
       final brush = PdfSolidBrush(color);
 
