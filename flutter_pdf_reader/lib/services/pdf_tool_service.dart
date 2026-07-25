@@ -20,7 +20,6 @@ class PdfToolService {
   PdfToolService._();
 
   /// ---- PDF 合并 ----
-  /// 使用模板方式逐页复制
   static Future<PdfToolResult> mergePDFs({
     required List<String> inputPaths,
     required String outputPath,
@@ -30,7 +29,6 @@ class PdfToolService {
         return PdfToolResult(success: false, message: '请选择至少两个 PDF 文件');
       }
 
-      // 加载所有源文档
       final documents = <PdfDocument>[];
       try {
         for (final path in inputPaths) {
@@ -38,20 +36,16 @@ class PdfToolService {
           documents.add(PdfDocument(inputBytes: bytes));
         }
 
-        // 创建新文档，逐页复制
         final newDoc = PdfDocument();
         for (final doc in documents) {
           for (int i = 0; i < doc.pages.count; i++) {
             final newPage = newDoc.pages.add();
             final template = doc.pages[i].createTemplate();
-            newPage.graphics.drawPdfTemplate(
-              template,
-              Offset.zero,
-            );
+            newPage.graphics.drawPdfTemplate(template, Offset.zero);
           }
         }
 
-        final mergedBytes = newDoc.save();
+        final mergedBytes = await newDoc.save();
         await File(outputPath).writeAsBytes(mergedBytes);
         newDoc.dispose();
 
@@ -97,7 +91,7 @@ class PdfToolService {
         newPage.graphics.drawPdfTemplate(template, Offset.zero);
       }
 
-      final outBytes = newDoc.save();
+      final outBytes = await newDoc.save();
       await File(outputPath).writeAsBytes(outBytes);
 
       newDoc.dispose();
@@ -132,7 +126,7 @@ class PdfToolService {
         final template = doc.pages[i].createTemplate();
         newPage.graphics.drawPdfTemplate(template, Offset.zero);
 
-        final outBytes = newDoc.save();
+        final outBytes = await newDoc.save();
         final outPath = '$outputDir/${nameBase}_第${i + 1}页.pdf';
         await File(outPath).writeAsBytes(outBytes);
 
@@ -152,8 +146,7 @@ class PdfToolService {
   }
 
   /// ---- PDF 转图片 ----
-  /// 注意：Syncfusion v24 不支持 PdfPage.render()，
-  /// 该功能需 Syncfusion v25+。此处使用 open in reader 方案
+  /// Syncfusion v24 不直接支持 PdfPage.render()，该功能需 v25+
   static Future<PdfToolResult> pdfToImages({
     required String inputPath,
     required String outputDir,
@@ -179,23 +172,12 @@ class PdfToolService {
       int exportedCount = 0;
 
       for (int i = startPage - 1; i < end; i++) {
-        final page = doc.pages[i];
-        // 使用 drawToPage 方法导出为图片格式
-        // 注意：Syncfusion Flutter PDF v24 不直接支持页面渲染为图片
-        // 这里使用 createTemplate 导出页面内容
-        final newDoc = PdfDocument();
-        final newPage = newDoc.pages.add();
-        final template = page.createTemplate();
-        newPage.graphics.drawPdfTemplate(template, Offset.zero);
-        newDoc.dispose();
-
-        // 保存为占位页面 - 实际图片导出需要 Syncfusion v25+
         final ext = format == 'png' ? 'png' : 'jpg';
         final outPath = '$outputDir/${nameBase}_第${i + 1}页.$ext';
-        // 写入一个空文件作为标记，通知用户升级
+        // 标记文件 - 完整导出需 Syncfusion v25+
         await File(outPath).writeAsString(
           'PDF page $i - Export to $format requires Syncfusion v25+\n'
-          'Please open the PDF in reader and use screenshot.',
+          'Please open the PDF in reader and use screenshot.\n',
         );
         exportedCount++;
       }
@@ -231,7 +213,6 @@ class PdfToolService {
         final page = doc.pages.add();
         final pageSize = page.getClientSize();
 
-        // 计算缩放比例以适配页面
         final imageWidth = pdfImage.width.toDouble();
         final imageHeight = pdfImage.height.toDouble();
         final scale = (pageSize.width / imageWidth)
@@ -247,7 +228,7 @@ class PdfToolService {
         );
       }
 
-      final outBytes = doc.save();
+      final outBytes = await doc.save();
       await File(outputPath).writeAsBytes(outBytes);
 
       doc.dispose();
@@ -262,7 +243,6 @@ class PdfToolService {
     }
   }
 
-  /// ---- 工具方法 ----
   static String _fileNameWithoutExtension(String path) {
     final name = path.split('/').last;
     final dot = name.lastIndexOf('.');
