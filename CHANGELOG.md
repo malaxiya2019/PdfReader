@@ -3,20 +3,17 @@
 ## [1.0.0] - 2026-07-25
 
 ### Phase 0: 项目初始化 ✅
-- Flutter 3.22.3 项目结构
-- Material Design 3 暗黑主题
-- 路由系统 + CI/CD
+- Flutter 3.22.3 项目结构 + M3 暗黑主题 + CI/CD
 
 ### Phase 1: 手机 PDF 阅读 MVP ✅
-- Syncfusion PDF Viewer 渲染
-- 阅读页面：双指缩放、全屏、横屏、翻页
-- FilePicker 打开 PDF + 最近文件
+- Syncfusion PDF Viewer + 全屏/横屏/缩放/翻页
 
 ### Phase 2: 文件管理系统 ✅
-- PDF 扫描服务：自动扫描 Download/Documents/微信/QQ
-- 文件列表页：搜索、排序（名称/大小/时间）
-- 文件信息显示：大小、修改时间、所在目录
-- 收藏功能（星标）
-- 首页：显示最近文件和收藏
-- 底部导航栏：首页 / 文件 / 工具
-- Android 存储权限适配（MANAGE_EXTERNAL_STORAGE）
+- PDF 扫描（7 目录）+ 搜索/排序/收藏 + 底部导航
+
+### Phase 3: 阅读增强 ✅
+- 阅读记录：自动保存/恢复阅读进度
+- 书签功能：添加/删除/列表浏览
+- PDF 目录：Syncfusion 内置书签面板
+- 文本搜索：实时搜索 + 上/下一个匹配
+- 页码跳转：点击页码弹出跳转对话框
