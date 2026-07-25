@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import '../../services/reading_record_service.dart';
 import '../../services/bookmark_service.dart';
+import '../../services/ai/ai_factory.dart';
+import 'ai_assistant_page.dart';
 
 class PdfReaderPage extends StatefulWidget {
   final String filePath;
@@ -298,7 +300,38 @@ class _PdfReaderPageState extends State<PdfReaderPage>
   }
 
   @override
-  Widget build(BuildContext context) {
+  Future<void> _openAIAssistant() async {
+    // 提取 PDF 文本
+    String pdfText = '';
+    String error = '';
+    try {
+      // 先尝试通过阅读器提取文本
+      final text = await _pdfViewerController?.extractText();
+      if (text != null && text.isNotEmpty) {
+        pdfText = text;
+      }
+    } catch (e) {
+      error = e.toString();
+    }
+
+    if (pdfText.isEmpty) {
+      pdfText = '（无法自动提取 PDF 文本。请确保文档包含可提取的文字层，'
+          '而非纯扫描图片。扫描件请使用 Phase 7 OCR 功能识别。）';
+    }
+
+    if (!mounted) return;
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AIAssistantPage(
+          pdfText: pdfText,
+          pdfName: widget.fileName,
+        ),
+      ),
+    );
+  }
+
+  $old_build
     final theme = Theme.of(context);
 
     final readerWidget = SfPdfViewer.file(
@@ -399,6 +432,11 @@ class _PdfReaderPageState extends State<PdfReaderPage>
           ),
           onPressed: _toggleBookmark,
           tooltip: _isBookmarked ? '删除书签' : '添加书签',
+        ),
+        IconButton(
+          icon: const Icon(Icons.auto_awesome),
+          onPressed: _openAIAssistant,
+          tooltip: 'AI 助手',
         ),
         IconButton(
           icon: const Icon(Icons.fullscreen),

@@ -6,6 +6,7 @@ import 'router/app_router.dart';
 import 'features/home/home_page.dart';
 import 'features/files/files_page.dart';
 import 'features/tools/tools_page.dart';
+import 'services/ai/ai_factory.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,6 +16,9 @@ void main() {
     DeviceOrientation.landscapeLeft,
     DeviceOrientation.landscapeRight,
   ]);
+
+  // 初始化 AI 服务
+  AIFactory.init();
 
   runApp(const AllPdfReaderApp());
 }
