@@ -190,12 +190,12 @@ class _ScanPageState extends State<ScanPage> {
     for (int y = 0; y < src.height; y++) {
       for (int x = 0; x < src.width; x++) {
         final p = src.getPixel(x, y);
-        if (p.r < minR) minR = p.r;
-        if (p.r > maxR) maxR = p.r;
-        if (p.g < minG) minG = p.g;
-        if (p.g > maxG) maxG = p.g;
-        if (p.b < minB) minB = p.b;
-        if (p.b > maxB) maxB = p.b;
+        if (p.r < minR) minR = p.r.toInt();
+        if (p.r > maxR) maxR = p.r.toInt();
+        if (p.g < minG) minG = p.g.toInt();
+        if (p.g > maxG) maxG = p.g.toInt();
+        if (p.b < minB) minB = p.b.toInt();
+        if (p.b > maxB) maxB = p.b.toInt();
       }
     }
 
@@ -207,9 +207,9 @@ class _ScanPageState extends State<ScanPage> {
     for (int y = 0; y < src.height; y++) {
       for (int x = 0; x < src.width; x++) {
         final p = src.getPixel(x, y);
-        final r = rangeR > 0 ? ((p.r - minR) / rangeR * 255).round().clamp(0, 255) : p.r;
-        final g = rangeG > 0 ? ((p.g - minG) / rangeG * 255).round().clamp(0, 255) : p.g;
-        final b = rangeB > 0 ? ((p.b - minB) / rangeB * 255).round().clamp(0, 255) : p.b;
+        final r = (rangeR > 0 ? ((p.r - minR) / rangeR * 255).round().clamp(0, 255) : p.r).toInt();
+        final g = (rangeG > 0 ? ((p.g - minG) / rangeG * 255).round().clamp(0, 255) : p.g).toInt();
+        final b = (rangeB > 0 ? ((p.b - minB) / rangeB * 255).round().clamp(0, 255) : p.b).toInt();
         dst.setPixelRgb(x, y, r, g, b);
       }
     }
