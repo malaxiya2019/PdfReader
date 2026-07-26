@@ -4,7 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import '../../models/pdf_file_info.dart';
 import '../../services/pdf_scanner_service.dart';
 import '../../router/app_router.dart';
-import '../../core/app_logo.dart';
+import '../../core/widgets/app_logo.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
