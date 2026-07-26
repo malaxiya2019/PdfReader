@@ -420,7 +420,7 @@ class _PdfReaderPageState extends State<PdfReaderPage>
       _currentZoom = zoom;
       // 判断当前缩放模式
       if (_pageSize != null) {
-        final screenW = MediaQuery.of(context).size.width;
+
         if ((zoom - _fitToWidthZoom).abs() < 0.01) {
           _zoomFitMode = ZoomFitMode.fitToWidth;
         } else if ((zoom - _fitToPageZoom).abs() < 0.01) {
