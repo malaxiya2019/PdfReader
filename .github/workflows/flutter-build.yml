@@ -195,7 +195,7 @@ jobs:
         continue-on-error: true
         run: |
           set +e
-          flutter build apk --release -v 2>&1
+          flutter build apk --debug -v 2>&1
           echo "EXIT_CODE=$?"
           echo "status=$([ $? -eq 0 ] && echo 'success' || echo 'partial')" >> $GITHUB_OUTPUT
 
@@ -204,7 +204,7 @@ jobs:
         run: |
           mkdir -p build/release
           # 策略 1
-          APK=$(find . -path "*/flutter-apk/app-release.apk" -type f | head -1)
+          APK=$(find . -path "*/flutter-apk/app-debug.apk" -type f | head -1)
           # 策略 2
           if [ -z "$APK" ]; then
             APK=$(find . -name "*.apk" -type f | head -1)
@@ -227,7 +227,7 @@ jobs:
         continue-on-error: true
         run: |
           set +e
-          flutter build appbundle --release -v 2>&1
+          flutter build appbundle --debug -v 2>&1
           echo "EXIT_CODE=$?"
           echo "status=$([ $? -eq 0 ] && echo 'success' || echo 'partial')" >> $GITHUB_OUTPUT
 
