@@ -205,7 +205,6 @@ class _PdfReaderPageState extends State<PdfReaderPage>
         builder: (_) => AIAssistantPage(
           pdfName: widget.fileName,
           pdfText: pdfText,
-          filePath: widget.filePath,
         ),
       ),
     );
@@ -255,7 +254,6 @@ class _PdfReaderPageState extends State<PdfReaderPage>
         onPageChanged: _onPageChanged,
         onZoomLevelChanged: _onZoomLevelChanged,
         onTap: (_) => _toggleControls(),
-        pageLayoutMode: PageLayoutMode.continuous,
       ),
     );
   }

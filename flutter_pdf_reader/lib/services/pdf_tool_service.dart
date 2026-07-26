@@ -268,7 +268,7 @@ class PdfToolService {
   }) async {
     try {
       final doc = await pdf_render.PdfDocument.openFile(inputPath);
-      final totalPages = doc.countPages;
+      final totalPages = doc.pageCount;
       final ext = imageFormat.toLowerCase() == 'jpg' ? 'jpg' : 'png';
 
       // 准备图库目录
@@ -285,43 +285,39 @@ class PdfToolService {
 
       int exportedCount = 0;
       for (int i = 0; i < totalPages; i++) {
-        final page = await doc.getPage(i);
-        final pageImage = await page.render(scale: 2.0);
-        final image = pageImage.image;
+        final page = await doc.getPage(i + 1);
+        final pageImage = await page.render(
+          width: page.width.toInt() * 2,
+          height: page.height.toInt() * 2,
+        );
 
         Uint8List imageBytes;
         if (imageFormat == 'jpg') {
-          // 获取原始 RGBA 数据 → 用 image 包编码为 JPEG
-          final byteData = await image.toByteData(
-            format: ui.ImageByteFormat.rawRgba,
-          );
-          final rawBytes = byteData!.buffer.asUint8List();
           final decoded = img.Image.fromBytes(
             width: pageImage.width,
             height: pageImage.height,
-            bytes: rawBytes,
+            bytes: pageImage.pixels,
             numChannels: 4,
           );
           imageBytes = Uint8List.fromList(img.encodeJpg(decoded, quality: 92));
         } else {
-          // PNG：直接使用 toByteData
-          final byteData = await image.toByteData(
+          final uiImage = await pageImage.createImageDetached();
+          final byteData = await uiImage.toByteData(
             format: ui.ImageByteFormat.png,
           );
           imageBytes = byteData!.buffer.asUint8List();
         }
 
-        // 保存到输出目录或相册目录
+        pageImage.dispose();
+
         final outPath = galleryDir != null
-            ? '${galleryDir.path}/page_${i + 1}.$ext'
-            : '$outputDir/page_${i + 1}.$ext';
+            ? "\${galleryDir.path}/page_\${i + 1}.\$ext"
+            : "\$outputDir/page_\${i + 1}.\$ext";
         await File(outPath).writeAsBytes(imageBytes);
         exportedCount++;
-
-        page.dispose();
       }
 
-      doc.dispose();
+      await doc.dispose();
 
       // 通知媒体库扫描
       if (galleryDir != null) {
