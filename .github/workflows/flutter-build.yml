@@ -79,12 +79,17 @@ jobs:
       - name: 获取依赖
         run: flutter pub get
 
-      - name: 构建 Debug APK
-        run: flutter build apk --debug
+      - name: 构建 Debug APK（Gradle 直接打包）
+        run: |
+          cd android
+          ./gradlew assembleDebug
 
       - name: 查找并整理 APK
         run: |
-          APK=$(find . -name "*.apk" -type f 2>/dev/null | head -1)
+          APK=$(find . -path "*/flutter-apk/*" -name "*.apk" -type f 2>/dev/null | head -1)
+          if [ -z "$APK" ]; then
+            APK=$(find . -name "*.apk" -type f 2>/dev/null | head -1)
+          fi
           if [ -n "$APK" ]; then
             echo "✅ 找到 APK: $APK"
             mkdir -p build/app/outputs/flutter-apk/
