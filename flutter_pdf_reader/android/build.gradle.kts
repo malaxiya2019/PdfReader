@@ -20,5 +20,16 @@ val clean by tasks.registering(Delete::class) {
     delete(rootProject.layout.buildDirectory)
 }
 
-// JVM 目标一致性由 gradle.properties 中的 kotlin.jvm.target.validation.mode=IGNORE 处理
-// 不要在这里强制覆盖子项目的 JVM 配置，避免干扰插件自身的构建配置
+// 强制所有子项目（含第三方插件）使用 JVM 17，避免 JVM target 不兼容错误
+// device_info_plus 等插件默认 Java 8 + Kotlin 17 导致编译失败
+subprojects {
+    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+        kotlinOptions {
+            jvmTarget = "17"
+        }
+    }
+    tasks.withType<JavaCompile>().configureEach {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+}

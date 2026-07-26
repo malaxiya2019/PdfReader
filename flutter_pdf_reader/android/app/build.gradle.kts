@@ -6,6 +6,8 @@ plugins {
 
 android {
     namespace = "com.pdfreader.flutter_pdf_reader"
+    // compileSdk=35 是 flutter_plugin_android_lifecycle 等插件的最低要求
+    // minSdk=21, targetSdk=34 与 DEVELOPMENT_PLAN 一致
     compileSdk = 35
 
     compileOptions {
