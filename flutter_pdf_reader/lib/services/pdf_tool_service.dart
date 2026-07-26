@@ -286,60 +286,14 @@ class PdfToolService {
         galleryDir = subDir;
       }
 
-      for (int i = 0; i < totalPages; i++) {
-        // Syncfusion v28+ 移除了 PdfPage.toImage() 且无直接替代 API
-        // PDF 转图片功能需要降级到 Syncfusion v24 或使用 SfPdfViewer 渲染
-        // 此处抛出明确错误提示
-        throw UnsupportedError(
-          'PDF转图片功能在当前 Syncfusion 版本中不可用。
-'
-          '请降级到 syncfusion_flutter_pdf: ^24.0.0 或使用 SfPdfViewer 截图方式。'
-        );
-
-        Uint8List finalBytes;
-
-        if (ext == 'png') {
-          // PNG: 直接通过 toByteData 导出
-          final byteData =
-              await dartImage.toByteData(format: ui.ImageByteFormat.png);
-          if (byteData == null) continue;
-          finalBytes = byteData.buffer.asUint8List();
-        } else {
-          // JPG: 先获取原始 RGBA 数据，再用 image 包编码为 JPG
-          final byteData =
-              await dartImage.toByteData(format: ui.ImageByteFormat.rawRgba);
-          if (byteData == null) continue;
-          final rawBytes = byteData.buffer.asUint8List();
-
-          // 使用 image 包编码为高质量 JPG
-          final decodedImg = img.Image.fromBytes(
-            width: dartImage.width,
-            height: dartImage.height,
-            bytes: rawBytes.buffer,
-            numChannels: 4,
-          );
-          finalBytes = Uint8List.fromList(
-            img.encodeJpg(decodedImg, quality: 92),
-          );
-        }
-
-        // 释放 ui.Image 资源
-        dartImage.dispose();
-
-        // 保存到输出目录
-        final outPath = '$outputDir/page_${i + 1}.$ext';
-        await _writeBytesInIsolate(outPath, finalBytes);
-
-        // 同时保存到图库
-        if (galleryDir != null) {
-          final galleryPath = '${galleryDir.path}/page_${i + 1}.$ext';
-          await _writeBytesInIsolate(galleryPath, finalBytes);
-          // 通知媒体扫描
-          await _notifyMediaScanner(galleryPath);
-        }
-      }
-
       doc.dispose();
+
+      // Syncfusion v28+ 移除了 PdfPage.toImage()，PDF转图片功能不可用
+      // 需要降级到 syncfusion_flutter_pdf: ^24.0.0 或使用 SfPdfViewer 截图
+      throw UnsupportedError(
+        'PDF 转图片功能在当前 Syncfusion 版本中不可用。'
+        '请降级到 syncfusion_flutter_pdf: ^24.0.0 或使用 SfPdfViewer 截图。'
+      );
 
       // 如果有图库目录，通知根目录扫描
       if (galleryDir != null) {
