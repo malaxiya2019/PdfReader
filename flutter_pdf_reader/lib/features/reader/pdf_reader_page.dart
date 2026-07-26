@@ -570,7 +570,7 @@ class _PdfReaderPageState extends State<PdfReaderPage>
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.grey.withOpacity(0.3),
+                    color: Colors.grey.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -586,7 +586,7 @@ class _PdfReaderPageState extends State<PdfReaderPage>
                       width: 36,
                       height: 36,
                       decoration: BoxDecoration(
-                        color: theme.colorScheme.primary.withOpacity(0.12),
+                        color: theme.colorScheme.primary.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Center(
@@ -610,14 +610,14 @@ class _PdfReaderPageState extends State<PdfReaderPage>
                     subtitle: Text(
                       _formatTime(b.created),
                       style: TextStyle(
-                        color: theme.colorScheme.onSurface.withOpacity(0.5),
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                         fontSize: 12,
                       ),
                     ),
                     trailing: IconButton(
                       icon: Icon(
                         Icons.delete_outline,
-                        color: theme.colorScheme.onSurface.withOpacity(0.4),
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
                         size: 20,
                       ),
                       onPressed: () async {
@@ -738,10 +738,10 @@ class _PdfReaderPageState extends State<PdfReaderPage>
           decoration: InputDecoration(
             hintText: '输入页码 (1-$_totalPages)',
             hintStyle: TextStyle(
-              color: theme.colorScheme.onSurface.withOpacity(0.4),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
             ),
             filled: true,
-            fillColor: theme.colorScheme.onSurface.withOpacity(0.08),
+            fillColor: theme.colorScheme.onSurface.withValues(alpha: 0.08),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
               borderSide: BorderSide.none,
@@ -754,7 +754,7 @@ class _PdfReaderPageState extends State<PdfReaderPage>
             child: Text(
               '取消',
               style:
-                  TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.6)),
+                  TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
             ),
           ),
           FilledButton(
@@ -870,7 +870,7 @@ class _PdfReaderPageState extends State<PdfReaderPage>
             Text(
               '正在提取文本...',
               style: TextStyle(
-                color: theme.colorScheme.onSurface.withOpacity(0.6),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                 fontSize: 14,
               ),
             ),
@@ -913,11 +913,11 @@ class _PdfReaderPageState extends State<PdfReaderPage>
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            color: theme.cardColor.withOpacity(0.95),
+            color: theme.cardColor.withValues(alpha: 0.95),
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.15),
+                color: Colors.black.withValues(alpha: 0.15),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -956,12 +956,12 @@ class _PdfReaderPageState extends State<PdfReaderPage>
               Container(
                 width: 1,
                 height: 20,
-                color: theme.colorScheme.onSurface.withOpacity(0.15),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.15),
               ),
               const SizedBox(width: 4),
               IconButton(
                 icon: const Icon(Icons.refresh, size: 20),
-                color: theme.colorScheme.onSurface.withOpacity(0.5),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                 onPressed: () {
                   _pageTextCache.remove(_currentPage);
                   _extractCurrentPageText();
@@ -998,7 +998,7 @@ class _PdfReaderPageState extends State<PdfReaderPage>
             Text(
               '加载中...',
               style: TextStyle(
-                color: theme.colorScheme.onSurface.withOpacity(0.6),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                 fontSize: 14,
               ),
             ),
@@ -1018,7 +1018,7 @@ class _PdfReaderPageState extends State<PdfReaderPage>
       left: 0,
       right: 0,
       child: Container(
-        color: theme.cardColor.withOpacity(_isFullscreen ? 0.95 : 0.97),
+        color: theme.cardColor.withValues(alpha: _isFullscreen ? 0.95 : 0.97),
         child: SafeArea(
           bottom: false,
           child: Column(
@@ -1062,7 +1062,7 @@ class _PdfReaderPageState extends State<PdfReaderPage>
                       icon: const Icon(Icons.fit_screen),
                       color: _zoomFitMode == ZoomFitMode.fitToWidth
                           ? theme.colorScheme.primary
-                          : theme.colorScheme.onSurface.withOpacity(0.7),
+                          : theme.colorScheme.onSurface.withValues(alpha: 0.7),
                       onPressed: _toggleZoomFit,
                       tooltip: _zoomFitMode == ZoomFitMode.fitToWidth
                           ? '适配页面'
@@ -1070,14 +1070,14 @@ class _PdfReaderPageState extends State<PdfReaderPage>
                     ),
                   IconButton(
                     icon: const Icon(Icons.search),
-                    color: theme.colorScheme.onSurface.withOpacity(0.7),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                     onPressed: () =>
                         setState(() => _showSearchBar = !_showSearchBar),
                     tooltip: '搜索',
                   ),
                   IconButton(
                     icon: const Icon(Icons.bookmark_outline),
-                    color: theme.colorScheme.onSurface.withOpacity(0.7),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                     onPressed: _showBookmarksList,
                     tooltip: '书签列表',
                   ),
@@ -1095,13 +1095,13 @@ class _PdfReaderPageState extends State<PdfReaderPage>
                   ),
                   IconButton(
                     icon: const Icon(Icons.auto_awesome),
-                    color: theme.colorScheme.onSurface.withOpacity(0.7),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                     onPressed: _openAIAssistant,
                     tooltip: 'AI 助手',
                   ),
                   IconButton(
                     icon: const Icon(Icons.fullscreen),
-                    color: theme.colorScheme.onSurface.withOpacity(0.7),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                     onPressed: _toggleFullscreen,
                     tooltip: '全屏',
                   ),
@@ -1121,7 +1121,7 @@ class _PdfReaderPageState extends State<PdfReaderPage>
                                 ? Icons.fullscreen
                                 : Icons.touch_app,
                         size: 12,
-                        color: theme.colorScheme.primary.withOpacity(0.7),
+                        color: theme.colorScheme.primary.withValues(alpha: 0.7),
                       ),
                       const SizedBox(width: 4),
                       Text(
@@ -1226,7 +1226,7 @@ class _PdfReaderPageState extends State<PdfReaderPage>
       left: 0,
       right: 0,
       child: Container(
-        color: theme.cardColor.withOpacity(0.97),
+        color: theme.cardColor.withValues(alpha: 0.97),
         child: SafeArea(
           top: false,
           child: Padding(
@@ -1237,7 +1237,7 @@ class _PdfReaderPageState extends State<PdfReaderPage>
                 if (_viewMode == PdfViewMode.original)
                   IconButton(
                     icon: const Icon(Icons.zoom_out),
-                    color: theme.colorScheme.onSurface.withOpacity(0.6),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                     onPressed: () {
                       final z = _currentZoom - 0.25;
                       _pdfViewerController?.zoomLevel = z.clamp(0.5, 5.0);
@@ -1248,7 +1248,7 @@ class _PdfReaderPageState extends State<PdfReaderPage>
                 if (_viewMode == PdfViewMode.original)
                   IconButton(
                     icon: const Icon(Icons.fit_screen),
-                    color: theme.colorScheme.primary.withOpacity(0.7),
+                    color: theme.colorScheme.primary.withValues(alpha: 0.7),
                     onPressed: _toggleZoomFit,
                     tooltip: '适配屏幕',
                     iconSize: 20,
@@ -1266,7 +1266,7 @@ class _PdfReaderPageState extends State<PdfReaderPage>
                     padding:
                         const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.onSurface.withOpacity(0.08),
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(
@@ -1275,7 +1275,7 @@ class _PdfReaderPageState extends State<PdfReaderPage>
                         Icon(Icons.auto_stories,
                             size: 14,
                             color:
-                                theme.colorScheme.onSurface.withOpacity(0.5)),
+                                theme.colorScheme.onSurface.withValues(alpha: 0.5)),
                         const SizedBox(width: 4),
                         Text(
                           '$_currentPage / $_totalPages',
@@ -1300,7 +1300,7 @@ class _PdfReaderPageState extends State<PdfReaderPage>
                 if (_viewMode == PdfViewMode.original)
                   IconButton(
                     icon: const Icon(Icons.zoom_in),
-                    color: theme.colorScheme.onSurface.withOpacity(0.6),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                     onPressed: () {
                       final z = _currentZoom + 0.25;
                       _pdfViewerController?.zoomLevel = z.clamp(0.5, 5.0);
@@ -1355,7 +1355,7 @@ class _PdfReaderPageState extends State<PdfReaderPage>
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.1),
+                  color: Colors.white.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -1456,11 +1456,11 @@ class _PdfReaderPageState extends State<PdfReaderPage>
                     decoration: InputDecoration(
                       hintText: '搜索 PDF 内容...',
                       hintStyle: TextStyle(
-                        color: theme.colorScheme.onSurface.withOpacity(0.4),
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
                         fontSize: 14,
                       ),
                       filled: true,
-                      fillColor: theme.colorScheme.onSurface.withOpacity(0.08),
+                      fillColor: theme.colorScheme.onSurface.withValues(alpha: 0.08),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                         borderSide: BorderSide.none,
@@ -1473,7 +1473,7 @@ class _PdfReaderPageState extends State<PdfReaderPage>
                           ? IconButton(
                               icon: const Icon(Icons.clear, size: 18),
                               color:
-                                  theme.colorScheme.onSurface.withOpacity(0.5),
+                                  theme.colorScheme.onSurface.withValues(alpha: 0.5),
                               onPressed: _clearSearch,
                             )
                           : null,
@@ -1490,13 +1490,13 @@ class _PdfReaderPageState extends State<PdfReaderPage>
                   Text(
                     '使用搜索面板导航',
                     style: TextStyle(
-                      color: theme.colorScheme.onSurface.withOpacity(0.4),
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
                       fontSize: 12,
                     ),
                   ),
                 IconButton(
                   icon: const Icon(Icons.close, size: 20),
-                  color: theme.colorScheme.onSurface.withOpacity(0.5),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                   onPressed: _clearSearch,
                 ),
               ],

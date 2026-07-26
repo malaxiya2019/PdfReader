@@ -213,7 +213,7 @@ class _HomePageState extends State<HomePage>
                   child: Text(
                     '共 ${_recentFiles.length} 个 PDF 文件',
                     style: TextStyle(
-                      color: theme.colorScheme.onSurface.withOpacity(0.3),
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
                       fontSize: 12,
                     ),
                   ),
@@ -232,7 +232,7 @@ class _HomePageState extends State<HomePage>
       children: [
         Icon(icon,
             size: 18,
-            color: iconColor ?? theme.colorScheme.onSurface.withOpacity(0.5)),
+            color: iconColor ?? theme.colorScheme.onSurface.withValues(alpha: 0.5)),
         const SizedBox(width: 8),
         Text(
           title,
@@ -260,7 +260,7 @@ class _HomePageState extends State<HomePage>
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withOpacity(0.12),
+              color: theme.colorScheme.primary.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(10),
             ),
             child: const Icon(Icons.picture_as_pdf_rounded, size: 20),
@@ -278,12 +278,12 @@ class _HomePageState extends State<HomePage>
           subtitle: Text(
             '${file.sizeFormatted} · ${file.dateFormatted}',
             style: TextStyle(
-              color: theme.colorScheme.onSurface.withOpacity(0.5),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
               fontSize: 11,
             ),
           ),
           trailing: Icon(Icons.chevron_right,
-              color: theme.colorScheme.onSurface.withOpacity(0.3), size: 20),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.3), size: 20),
         ),
       ),
     );
@@ -328,7 +328,7 @@ class _HomePageState extends State<HomePage>
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: Colors.grey.withOpacity(0.3),
+                    color: Colors.grey.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
@@ -336,7 +336,7 @@ class _HomePageState extends State<HomePage>
                   height: 12,
                   width: 150,
                   decoration: BoxDecoration(
-                    color: Colors.grey.withOpacity(0.3),
+                    color: Colors.grey.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
@@ -345,7 +345,7 @@ class _HomePageState extends State<HomePage>
                   width: 100,
                   margin: const EdgeInsets.only(top: 6),
                   decoration: BoxDecoration(
-                    color: Colors.grey.withOpacity(0.2),
+                    color: Colors.grey.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
@@ -353,7 +353,7 @@ class _HomePageState extends State<HomePage>
                   width: 20,
                   height: 20,
                   decoration: BoxDecoration(
-                    color: Colors.grey.withOpacity(0.2),
+                    color: Colors.grey.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
@@ -373,21 +373,21 @@ class _HomePageState extends State<HomePage>
           children: [
             Icon(Icons.folder_open,
                 size: 64,
-                color: theme.colorScheme.onSurface.withOpacity(0.15)),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.15)),
             const SizedBox(height: 16),
             Text('未找到 PDF 文件',
                 style: TextStyle(
-                    color: theme.colorScheme.onSurface.withOpacity(0.5),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                     fontSize: 16)),
             const SizedBox(height: 8),
             Text('点击上方按钮打开文件',
                 style: TextStyle(
-                    color: theme.colorScheme.onSurface.withOpacity(0.3),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
                     fontSize: 13)),
             const SizedBox(height: 8),
             Text('或切换到"文件"标签扫描设备',
                 style: TextStyle(
-                    color: theme.colorScheme.onSurface.withOpacity(0.3),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
                     fontSize: 13)),
           ],
         ),
@@ -404,17 +404,17 @@ class _HomePageState extends State<HomePage>
           children: [
             Icon(Icons.error_outline,
                 size: 64,
-                color: theme.colorScheme.error.withOpacity(0.5)),
+                color: theme.colorScheme.error.withValues(alpha: 0.5)),
             const SizedBox(height: 16),
             Text('加载失败',
                 style: TextStyle(
-                    color: theme.colorScheme.onSurface.withOpacity(0.7),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                     fontSize: 16,
                     fontWeight: FontWeight.w500)),
             const SizedBox(height: 8),
             Text(_errorMessage,
                 style: TextStyle(
-                    color: theme.colorScheme.onSurface.withOpacity(0.4),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
                     fontSize: 13),
                 textAlign: TextAlign.center),
             const SizedBox(height: 24),

@@ -145,16 +145,16 @@ class _DeletePagePageState extends State<DeletePagePage> {
         children: [
           Icon(Icons.auto_delete_outlined,
               size: 72,
-              color: theme.colorScheme.onSurface.withOpacity(0.15)),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.15)),
           const SizedBox(height: 16),
           Text('选择要删除页面的 PDF',
               style: TextStyle(
-                  color: theme.colorScheme.onSurface.withOpacity(0.6),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                   fontSize: 16)),
           const SizedBox(height: 8),
           Text('点击下方按钮选择文件',
               style: TextStyle(
-                  color: theme.colorScheme.onSurface.withOpacity(0.4),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
                   fontSize: 13)),
         ],
       ),
@@ -182,7 +182,7 @@ class _DeletePagePageState extends State<DeletePagePage> {
               const Spacer(),
               Text('$_totalPages 页',
                   style: TextStyle(
-                      color: theme.colorScheme.onSurface.withOpacity(0.5),
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                       fontSize: 13)),
             ],
           ),
@@ -192,7 +192,7 @@ class _DeletePagePageState extends State<DeletePagePage> {
           child: Text(
             '点击选择要删除的页面',
             style: TextStyle(
-                color: theme.colorScheme.onSurface.withOpacity(0.5),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                 fontSize: 13),
           ),
         ),
@@ -224,13 +224,13 @@ class _DeletePagePageState extends State<DeletePagePage> {
                   duration: const Duration(milliseconds: 200),
                   decoration: BoxDecoration(
                     color: selected
-                        ? theme.colorScheme.error.withOpacity(0.15)
+                        ? theme.colorScheme.error.withValues(alpha: 0.15)
                         : theme.cardColor,
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
                       color: selected
                           ? theme.colorScheme.error
-                          : theme.colorScheme.outline.withOpacity(0.2),
+                          : theme.colorScheme.outline.withValues(alpha: 0.2),
                       width: selected ? 2 : 1,
                     ),
                   ),

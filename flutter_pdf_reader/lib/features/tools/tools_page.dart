@@ -115,7 +115,7 @@ class ToolsPage extends StatelessWidget {
             Row(
               children: [
                 Icon(Icons.build_outlined,
-                    color: theme.colorScheme.onSurface.withOpacity(0.6),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                     size: 20),
                 const SizedBox(width: 8),
                 Text(
@@ -128,7 +128,7 @@ class ToolsPage extends StatelessWidget {
             Text(
               'PDF 转换与处理工具',
               style: TextStyle(
-                color: theme.colorScheme.onSurface.withOpacity(0.5),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                 fontSize: 14,
               ),
             ),
@@ -158,7 +158,7 @@ class ToolsPage extends StatelessWidget {
             Row(
               children: [
                 Icon(Icons.edit_outlined,
-                    color: theme.colorScheme.onSurface.withOpacity(0.6),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                     size: 20),
                 const SizedBox(width: 8),
                 Text(
@@ -171,7 +171,7 @@ class ToolsPage extends StatelessWidget {
             Text(
               'PDF 页面编辑与优化',
               style: TextStyle(
-                color: theme.colorScheme.onSurface.withOpacity(0.5),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                 fontSize: 14,
               ),
             ),
@@ -201,7 +201,7 @@ class ToolsPage extends StatelessWidget {
             Row(
               children: [
                 Icon(Icons.document_scanner_outlined,
-                    color: theme.colorScheme.onSurface.withOpacity(0.6),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                     size: 20),
                 const SizedBox(width: 8),
                 Text(
@@ -214,7 +214,7 @@ class ToolsPage extends StatelessWidget {
             Text(
               '拍照识别文字，生成可搜索 PDF',
               style: TextStyle(
-                color: theme.colorScheme.onSurface.withOpacity(0.5),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                 fontSize: 14,
               ),
             ),
@@ -295,7 +295,7 @@ class _ToolCard extends StatelessWidget {
                   width: 56,
                   height: 56,
                   decoration: BoxDecoration(
-                    color: tool.color.withOpacity(0.15),
+                    color: tool.color.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Icon(tool.icon, color: tool.color, size: 28),
@@ -313,7 +313,7 @@ class _ToolCard extends StatelessWidget {
                 Text(
                   tool.subtitle,
                   style: TextStyle(
-                    color: theme.colorScheme.onSurface.withOpacity(0.5),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                     fontSize: 12,
                   ),
                   textAlign: TextAlign.center,

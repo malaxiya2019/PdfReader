@@ -54,7 +54,7 @@ class AppTheme {
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: _darkSurface,
-        indicatorColor: _primaryColor.withOpacity(0.2),
+        indicatorColor: _primaryColor.withValues(alpha: 0.2),
       ),
       textTheme: const TextTheme(
         headlineLarge: TextStyle(
@@ -153,7 +153,7 @@ class AppTheme {
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: _lightCard,
-        indicatorColor: _primaryColor.withOpacity(0.2),
+        indicatorColor: _primaryColor.withValues(alpha: 0.2),
       ),
       textTheme: TextTheme(
         headlineLarge: TextStyle(

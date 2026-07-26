@@ -82,7 +82,7 @@ class _CompressPdfPageState extends State<CompressPdfPage> {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withOpacity(0.12),
+                    color: theme.colorScheme.primary.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(Icons.compress, size: 20),
@@ -98,7 +98,7 @@ class _CompressPdfPageState extends State<CompressPdfPage> {
                     ? Text(
                         _formatBytes(_originalSize!),
                         style: TextStyle(
-                            color: theme.colorScheme.onSurface.withOpacity(0.5),
+                            color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                             fontSize: 12),
                       )
                     : null,
@@ -113,14 +113,14 @@ class _CompressPdfPageState extends State<CompressPdfPage> {
             // Quality slider
             Text('压缩强度',
                 style: TextStyle(
-                    color: theme.colorScheme.onSurface.withOpacity(0.7),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                     fontSize: 14,
                     fontWeight: FontWeight.w600)),
             const SizedBox(height: 4),
             Text(
               _qualityLabel(),
               style: TextStyle(
-                  color: theme.colorScheme.onSurface.withOpacity(0.5),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                   fontSize: 13),
             ),
             Slider(
@@ -139,11 +139,11 @@ class _CompressPdfPageState extends State<CompressPdfPage> {
               children: [
                 Text('最小压缩',
                     style: TextStyle(
-                        color: theme.colorScheme.onSurface.withOpacity(0.4),
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
                         fontSize: 12)),
                 Text('最大压缩',
                     style: TextStyle(
-                        color: theme.colorScheme.onSurface.withOpacity(0.4),
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
                         fontSize: 12)),
               ],
             ),
@@ -153,7 +153,7 @@ class _CompressPdfPageState extends State<CompressPdfPage> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withOpacity(0.08),
+                  color: theme.colorScheme.primary.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Row(
@@ -201,7 +201,7 @@ class _CompressPdfPageState extends State<CompressPdfPage> {
             Text(
               '通过移除冗余元数据减小 PDF 文件体积。',
               style: TextStyle(
-                  color: theme.colorScheme.onSurface.withOpacity(0.4),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
                   fontSize: 12),
             ),
           ],

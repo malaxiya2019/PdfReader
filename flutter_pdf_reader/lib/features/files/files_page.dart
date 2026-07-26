@@ -164,17 +164,17 @@ class _FilesPageState extends State<FilesPage> {
               decoration: InputDecoration(
                 hintText: '搜索 PDF 文件...',
                 hintStyle: TextStyle(
-                  color: theme.colorScheme.onSurface.withOpacity(0.4),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
                 ),
                 prefixIcon: Icon(
                   Icons.search,
-                  color: theme.colorScheme.onSurface.withOpacity(0.5),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                   size: 22,
                 ),
                 suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
                         icon: Icon(Icons.clear,
-                            color: theme.colorScheme.onSurface.withOpacity(0.5),
+                            color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                             size: 18),
                         onPressed: () {
                           _searchController.clear();
@@ -209,7 +209,7 @@ class _FilesPageState extends State<FilesPage> {
                       ? '找到 $count / $total 个文件'
                       : '共 $total 个文件',
                   style: TextStyle(
-                    color: theme.colorScheme.onSurface.withOpacity(0.4),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
                     fontSize: 12,
                   ),
                 ),
@@ -237,12 +237,12 @@ class _FilesPageState extends State<FilesPage> {
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
           color: isSelected
-              ? theme.colorScheme.primary.withOpacity(0.15)
+              ? theme.colorScheme.primary.withValues(alpha: 0.15)
               : theme.cardColor,
           borderRadius: BorderRadius.circular(8),
           border: isSelected
               ? Border.all(
-                  color: theme.colorScheme.primary.withOpacity(0.3),
+                  color: theme.colorScheme.primary.withValues(alpha: 0.3),
                 )
               : null,
         ),
@@ -254,7 +254,7 @@ class _FilesPageState extends State<FilesPage> {
               size: 16,
               color: isSelected
                   ? theme.colorScheme.primary
-                  : theme.colorScheme.onSurface.withOpacity(0.5),
+                  : theme.colorScheme.onSurface.withValues(alpha: 0.5),
             ),
             const SizedBox(width: 4),
             Text(
@@ -263,7 +263,7 @@ class _FilesPageState extends State<FilesPage> {
                 fontSize: 12,
                 color: isSelected
                     ? theme.colorScheme.primary
-                    : theme.colorScheme.onSurface.withOpacity(0.5),
+                    : theme.colorScheme.onSurface.withValues(alpha: 0.5),
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
               ),
             ),
@@ -296,13 +296,13 @@ class _FilesPageState extends State<FilesPage> {
               Icon(
                 Icons.error_outline,
                 size: 64,
-                color: theme.colorScheme.error.withOpacity(0.5),
+                color: theme.colorScheme.error.withValues(alpha: 0.5),
               ),
               const SizedBox(height: 16),
               Text(
                 '扫描失败',
                 style: TextStyle(
-                  color: theme.colorScheme.onSurface.withOpacity(0.7),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                 ),
@@ -312,7 +312,7 @@ class _FilesPageState extends State<FilesPage> {
                 _errorMessage,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: theme.colorScheme.onSurface.withOpacity(0.4),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
                   fontSize: 13,
                 ),
               ),
@@ -338,14 +338,14 @@ class _FilesPageState extends State<FilesPage> {
               Icon(
                 _searchQuery.isNotEmpty ? Icons.search_off : Icons.folder_off,
                 size: 64,
-                color: theme.colorScheme.onSurface.withOpacity(0.15),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.15),
               ),
               const SizedBox(height: 16),
               Text(
                 _searchQuery.isNotEmpty ? '未找到匹配的文件' : _errorMessage,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: theme.colorScheme.onSurface.withOpacity(0.5),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                   fontSize: 15,
                 ),
               ),
@@ -398,7 +398,7 @@ class _FilesPageState extends State<FilesPage> {
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: Colors.grey.withOpacity(0.3),
+                      color: Colors.grey.withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
@@ -411,7 +411,7 @@ class _FilesPageState extends State<FilesPage> {
                           height: 12,
                           width: 180,
                           decoration: BoxDecoration(
-                            color: Colors.grey.withOpacity(0.3),
+                            color: Colors.grey.withValues(alpha: 0.3),
                             borderRadius: BorderRadius.circular(4),
                           ),
                         ),
@@ -420,7 +420,7 @@ class _FilesPageState extends State<FilesPage> {
                           height: 10,
                           width: 120,
                           decoration: BoxDecoration(
-                            color: Colors.grey.withOpacity(0.2),
+                            color: Colors.grey.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(4),
                           ),
                         ),
@@ -431,7 +431,7 @@ class _FilesPageState extends State<FilesPage> {
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
-                      color: Colors.grey.withOpacity(0.2),
+                      color: Colors.grey.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
@@ -481,15 +481,15 @@ class _FilesPageState extends State<FilesPage> {
                   height: 48,
                   decoration: BoxDecoration(
                     color: exists
-                        ? theme.colorScheme.primary.withOpacity(0.12)
-                        : theme.colorScheme.onSurface.withOpacity(0.05),
+                        ? theme.colorScheme.primary.withValues(alpha: 0.12)
+                        : theme.colorScheme.onSurface.withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
                     Icons.picture_as_pdf_rounded,
                     color: exists
                         ? theme.colorScheme.primary
-                        : theme.colorScheme.onSurface.withOpacity(0.3),
+                        : theme.colorScheme.onSurface.withValues(alpha: 0.3),
                     size: 24,
                   ),
                 ),
@@ -505,7 +505,7 @@ class _FilesPageState extends State<FilesPage> {
                         style: TextStyle(
                           color: exists
                               ? theme.colorScheme.onSurface
-                              : theme.colorScheme.onSurface.withOpacity(0.4),
+                              : theme.colorScheme.onSurface.withValues(alpha: 0.4),
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
                         ),
@@ -518,7 +518,7 @@ class _FilesPageState extends State<FilesPage> {
                           Text(
                             file.sizeFormatted,
                             style: TextStyle(
-                              color: theme.colorScheme.onSurface.withOpacity(0.5),
+                              color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                               fontSize: 12,
                             ),
                           ),
@@ -526,7 +526,7 @@ class _FilesPageState extends State<FilesPage> {
                           Text(
                             file.dateFormatted,
                             style: TextStyle(
-                              color: theme.colorScheme.onSurface.withOpacity(0.5),
+                              color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                               fontSize: 12,
                             ),
                           ),
@@ -537,13 +537,13 @@ class _FilesPageState extends State<FilesPage> {
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: theme.colorScheme.onSurface.withOpacity(0.08),
+                              color: theme.colorScheme.onSurface.withValues(alpha: 0.08),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
                               file.folderName,
                               style: TextStyle(
-                                color: theme.colorScheme.onSurface.withOpacity(0.4),
+                                color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
                                 fontSize: 10,
                               ),
                             ),
@@ -563,7 +563,7 @@ class _FilesPageState extends State<FilesPage> {
                       key: ValueKey('fav_${file.isFavorite}_${file.path}'),
                       color: file.isFavorite
                           ? Colors.amber
-                          : theme.colorScheme.onSurface.withOpacity(0.3),
+                          : theme.colorScheme.onSurface.withValues(alpha: 0.3),
                       size: 22,
                     ),
                   ),

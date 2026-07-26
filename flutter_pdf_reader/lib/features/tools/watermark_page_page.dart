@@ -80,7 +80,7 @@ class _WatermarkPagePageState extends State<WatermarkPagePage> {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withOpacity(0.12),
+                    color: theme.colorScheme.primary.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(Icons.picture_as_pdf, size: 20),
@@ -105,7 +105,7 @@ class _WatermarkPagePageState extends State<WatermarkPagePage> {
             // Watermark text
             Text('水印文字',
                 style: TextStyle(
-                    color: theme.colorScheme.onSurface.withOpacity(0.7),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                     fontSize: 14,
                     fontWeight: FontWeight.w600)),
             const SizedBox(height: 8),
@@ -129,7 +129,7 @@ class _WatermarkPagePageState extends State<WatermarkPagePage> {
             // Font size
             Text('字体大小: ${_fontSize.toInt()}',
                 style: TextStyle(
-                    color: theme.colorScheme.onSurface.withOpacity(0.7),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                     fontSize: 14,
                     fontWeight: FontWeight.w600)),
             Slider(
@@ -145,7 +145,7 @@ class _WatermarkPagePageState extends State<WatermarkPagePage> {
             // Opacity
             Text('透明度: ${(_opacity * 100).toInt()}%',
                 style: TextStyle(
-                    color: theme.colorScheme.onSurface.withOpacity(0.7),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                     fontSize: 14,
                     fontWeight: FontWeight.w600)),
             Slider(
@@ -161,7 +161,7 @@ class _WatermarkPagePageState extends State<WatermarkPagePage> {
             // Color
             Text('颜色',
                 style: TextStyle(
-                    color: theme.colorScheme.onSurface.withOpacity(0.7),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                     fontSize: 14,
                     fontWeight: FontWeight.w600)),
             const SizedBox(height: 8),
@@ -216,10 +216,10 @@ class _WatermarkPagePageState extends State<WatermarkPagePage> {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: color.withOpacity(selected ? 0.3 : 0.1),
+          color: color.withValues(alpha: selected ? 0.3 : 0.1),
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: selected ? color : color.withOpacity(0.2),
+            color: selected ? color : color.withValues(alpha: 0.2),
             width: selected ? 2 : 1,
           ),
         ),
