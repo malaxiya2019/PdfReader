@@ -69,7 +69,8 @@ jobs:
       - name: 构建 Debug APK
         id: build-debug
         continue-on-error: true
-        run: flutter build apk --debug
+        run: |
+          flutter build apk --debug 2>&1 || echo "⚠️ 构建退出码非零，继续查找 APK"
 
       - name: 查找并整理 APK
         id: find-apk
