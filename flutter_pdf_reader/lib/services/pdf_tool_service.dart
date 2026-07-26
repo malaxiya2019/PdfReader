@@ -296,7 +296,7 @@ class PdfToolService {
           final decoded = img.Image.fromBytes(
             width: pageImage.width,
             height: pageImage.height,
-            bytes: pageImage.pixels,
+            bytes: pageImage.pixels.buffer,
             numChannels: 4,
           );
           imageBytes = Uint8List.fromList(img.encodeJpg(decoded, quality: 92));
