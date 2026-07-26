@@ -98,7 +98,7 @@ class _AISettingsPageState extends State<AISettingsPage> {
           // ---- 供应商选择 ----
           Text('供应商',
               style: TextStyle(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                  color: theme.colorScheme.onSurface.withOpacity(0.7),
                   fontSize: 14,
                   fontWeight: FontWeight.w600)),
           const SizedBox(height: 8),
@@ -125,7 +125,7 @@ class _AISettingsPageState extends State<AISettingsPage> {
             // ---- 云端 API 配置 ----
             Text('API 端点',
                 style: TextStyle(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                    color: theme.colorScheme.onSurface.withOpacity(0.7),
                     fontSize: 14,
                     fontWeight: FontWeight.w600)),
             const SizedBox(height: 8),
@@ -186,7 +186,7 @@ class _AISettingsPageState extends State<AISettingsPage> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: theme.colorScheme.primary.withValues(alpha: 0.08),
+                color: theme.colorScheme.primary.withOpacity(0.08),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Row(
@@ -210,7 +210,7 @@ class _AISettingsPageState extends State<AISettingsPage> {
             // ---- 本地 LLM 配置 ----
             Text('模型文件路径',
                 style: TextStyle(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                    color: theme.colorScheme.onSurface.withOpacity(0.7),
                     fontSize: 14,
                     fontWeight: FontWeight.w600)),
             const SizedBox(height: 8),
@@ -224,7 +224,7 @@ class _AISettingsPageState extends State<AISettingsPage> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: theme.colorScheme.secondary.withValues(alpha: 0.08),
+                color: theme.colorScheme.secondary.withOpacity(0.08),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Row(
@@ -247,7 +247,7 @@ class _AISettingsPageState extends State<AISettingsPage> {
                           '如需完整 LLM 推理，需下载 GGUF 格式模型文件并填写路径。',
                           style: TextStyle(
                               color:
-                                  theme.colorScheme.secondary.withValues(alpha: 0.7),
+                                  theme.colorScheme.secondary.withOpacity(0.7),
                               fontSize: 12),
                         ),
                       ],
@@ -298,7 +298,7 @@ class _AISettingsPageState extends State<AISettingsPage> {
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       labelStyle: TextStyle(
-          color: theme.colorScheme.onSurface.withValues(alpha: 0.5), fontSize: 13),
+          color: theme.colorScheme.onSurface.withOpacity(0.5), fontSize: 13),
     );
   }
 }

@@ -215,7 +215,7 @@ mixin ReaderControllerMixin<T extends StatefulWidget> on State<T> {
               child: Container(
                 width: 40, height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey.withValues(alpha: 0.3),
+                  color: Colors.grey.withOpacity(0.3),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -227,14 +227,14 @@ mixin ReaderControllerMixin<T extends StatefulWidget> on State<T> {
               leading: Container(
                 width: 36, height: 36,
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withValues(alpha: 0.12),
+                  color: theme.colorScheme.primary.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(Icons.bookmark, color: theme.colorScheme.primary, size: 18),
               ),
               title: Text('第 ${b.page} 页', style: theme.textTheme.bodyLarge),
               trailing: IconButton(
-                icon: Icon(Icons.close, color: theme.colorScheme.onSurface.withValues(alpha: 0.4), size: 18),
+                icon: Icon(Icons.close, color: theme.colorScheme.onSurface.withOpacity(0.4), size: 18),
                 onPressed: () async {
                   await BookmarkService.removeBookmark(b.filePath, b.page);
                   Navigator.pop(ctx);
@@ -315,10 +315,10 @@ mixin ReaderControllerMixin<T extends StatefulWidget> on State<T> {
           decoration: InputDecoration(
             hintText: '输入页码 (1-$total)',
             hintStyle: TextStyle(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+              color: theme.colorScheme.onSurface.withOpacity(0.4),
             ),
             filled: true,
-            fillColor: theme.colorScheme.onSurface.withValues(alpha: 0.08),
+            fillColor: theme.colorScheme.onSurface.withOpacity(0.08),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
               borderSide: BorderSide.none,
@@ -329,7 +329,7 @@ mixin ReaderControllerMixin<T extends StatefulWidget> on State<T> {
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: Text('取消', style: TextStyle(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+              color: theme.colorScheme.onSurface.withOpacity(0.6),
             )),
           ),
           FilledButton(

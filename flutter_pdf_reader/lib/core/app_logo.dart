@@ -38,7 +38,7 @@ class AppLogo extends StatelessWidget {
           Text(
             '高颜值暗黑风 PDF 阅读器',
             style: TextStyle(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+              color: theme.colorScheme.onSurface.withOpacity(0.5),
               fontSize: size > 60 ? 14 : 11,
             ),
           ),
@@ -82,12 +82,12 @@ class AppLogo extends StatelessWidget {
           ],
         ),
         border: Border.all(
-          color: theme.colorScheme.primary.withValues(alpha: 0.6),
+          color: theme.colorScheme.primary.withOpacity(0.6),
           width: 2.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: theme.colorScheme.primary.withValues(alpha: 0.3),
+            color: theme.colorScheme.primary.withOpacity(0.3),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),
@@ -115,7 +115,7 @@ class AppLogo extends StatelessWidget {
                 borderRadius: BorderRadius.circular(size * 0.07),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.amber.withValues(alpha: 0.4),
+                    color: Colors.amber.withOpacity(0.4),
                     blurRadius: 6,
                   ),
                 ],
@@ -138,7 +138,7 @@ class AppLogo extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: Colors.amber.withValues(alpha: 0.2),
+                  color: Colors.amber.withOpacity(0.2),
                   width: 1.5,
                 ),
               ),
@@ -194,12 +194,12 @@ class SplashLogo extends StatelessWidget {
                         ],
                       ),
                       border: Border.all(
-                        color: Colors.redAccent.withValues(alpha: 0.3 + value * 0.3),
+                        color: Colors.redAccent.withOpacity(0.3 + value * 0.3),
                         width: 2.5,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.redAccent.withValues(alpha: 0.15 + value * 0.15),
+                          color: Colors.redAccent.withOpacity(0.15 + value * 0.15),
                           blurRadius: 20 + value * 10,
                         ),
                       ],
@@ -223,7 +223,7 @@ class SplashLogo extends StatelessWidget {
                               borderRadius: BorderRadius.circular(8),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.amber.withValues(alpha: 0.5),
+                                  color: Colors.amber.withOpacity(0.5),
                                   blurRadius: 8,
                                 ),
                               ],
@@ -254,7 +254,7 @@ class SplashLogo extends StatelessWidget {
               Text(
                 'v1.0.0',
                 style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.4),
+                  color: Colors.white.withOpacity(0.4),
                   fontSize: 14,
                 ),
               ),
@@ -264,7 +264,7 @@ class SplashLogo extends StatelessWidget {
                 height: 24,
                 child: CircularProgressIndicator(
                   strokeWidth: 2.5,
-                  color: Colors.redAccent.withValues(alpha: 0.6),
+                  color: Colors.redAccent.withOpacity(0.6),
                 ),
               ),
             ],
@@ -290,7 +290,7 @@ class AboutLogo extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           decoration: BoxDecoration(
-            color: theme.colorScheme.primary.withValues(alpha: 0.1),
+            color: theme.colorScheme.primary.withOpacity(0.1),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Text(
@@ -306,7 +306,7 @@ class AboutLogo extends StatelessWidget {
         Text(
           'All PDF Reader — Android PDF 阅读器',
           style: TextStyle(
-            color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+            color: theme.colorScheme.onSurface.withOpacity(0.5),
             fontSize: 13,
           ),
         ),

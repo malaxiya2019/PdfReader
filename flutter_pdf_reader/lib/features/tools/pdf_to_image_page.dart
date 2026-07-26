@@ -130,7 +130,7 @@ class _PdfToImagePageState extends State<PdfToImagePage> {
                         width: 48,
                         height: 48,
                         decoration: BoxDecoration(
-                          color: Colors.blue.withValues(alpha: 0.12),
+                          color: Colors.blue.withOpacity(0.12),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: const Icon(
@@ -161,7 +161,7 @@ class _PdfToImagePageState extends State<PdfToImagePage> {
                                 '$_totalPages 页',
                                 style: TextStyle(
                                   color: theme.colorScheme.onSurface
-                                      .withValues(alpha: 0.5),
+                                      .withOpacity(0.5),
                                   fontSize: 12,
                                 ),
                               ),
@@ -169,7 +169,7 @@ class _PdfToImagePageState extends State<PdfToImagePage> {
                         ),
                       ),
                       Icon(Icons.folder_open,
-                          color: theme.colorScheme.onSurface.withValues(alpha: 0.4)),
+                          color: theme.colorScheme.onSurface.withOpacity(0.4)),
                     ],
                   ),
                 ),
@@ -206,9 +206,9 @@ class _PdfToImagePageState extends State<PdfToImagePage> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.blue.withValues(alpha: 0.08),
+                  color: Colors.blue.withOpacity(0.08),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.blue.withValues(alpha: 0.15)),
+                  border: Border.all(color: Colors.blue.withOpacity(0.15)),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -234,7 +234,7 @@ class _PdfToImagePageState extends State<PdfToImagePage> {
                                 ? '无损 PNG (透明通道支持)'
                                 : '高质量 JPG (92% 品质, 文件更小)',
                             style: TextStyle(
-                              color: Colors.blue.shade100.withValues(alpha: 0.7),
+                              color: Colors.blue.shade100.withOpacity(0.7),
                               fontSize: 12,
                             ),
                           ),
@@ -261,14 +261,14 @@ class _PdfToImagePageState extends State<PdfToImagePage> {
                       '图片将保存到 Pictures/AllPDFReader/ 目录',
                       style: TextStyle(
                         fontSize: 12,
-                        color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                        color: theme.colorScheme.onSurface.withOpacity(0.5),
                       ),
                     ),
                     secondary: Icon(
                       Icons.photo_album_outlined,
                       color: _saveToGallery
                           ? Colors.amber.shade300
-                          : theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                          : theme.colorScheme.onSurface.withOpacity(0.4),
                     ),
                     value: _saveToGallery,
                     onChanged: (v) => setState(() => _saveToGallery = v),
@@ -314,9 +314,9 @@ class _PdfToImagePageState extends State<PdfToImagePage> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.green.withValues(alpha: 0.08),
+                    color: Colors.green.withOpacity(0.08),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: Colors.green.withValues(alpha: 0.2)),
+                    border: Border.all(color: Colors.green.withOpacity(0.2)),
                   ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -340,7 +340,7 @@ class _PdfToImagePageState extends State<PdfToImagePage> {
                             Text(
                               '共 $_exportedCount 页，保存至:',
                               style: TextStyle(
-                                color: Colors.green.shade100.withValues(alpha: 0.7),
+                                color: Colors.green.shade100.withOpacity(0.7),
                                 fontSize: 12,
                               ),
                             ),
@@ -348,7 +348,7 @@ class _PdfToImagePageState extends State<PdfToImagePage> {
                             Container(
                               padding: const EdgeInsets.all(6),
                               decoration: BoxDecoration(
-                                color: Colors.black.withValues(alpha: 0.3),
+                                color: Colors.black.withOpacity(0.3),
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(

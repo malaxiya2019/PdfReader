@@ -142,7 +142,7 @@ class _SplitPdfPageState extends State<SplitPdfPage> {
                         width: 48,
                         height: 48,
                         decoration: BoxDecoration(
-                          color: theme.colorScheme.primary.withValues(alpha: 0.12),
+                          color: theme.colorScheme.primary.withOpacity(0.12),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Icon(
@@ -172,7 +172,7 @@ class _SplitPdfPageState extends State<SplitPdfPage> {
                               Text(
                                 '$_totalPages 页',
                                 style: TextStyle(
-                                  color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                                  color: theme.colorScheme.onSurface.withOpacity(0.5),
                                   fontSize: 12,
                                 ),
                               ),
@@ -180,7 +180,7 @@ class _SplitPdfPageState extends State<SplitPdfPage> {
                         ),
                       ),
                       Icon(Icons.folder_open,
-                          color: theme.colorScheme.onSurface.withValues(alpha: 0.4)),
+                          color: theme.colorScheme.onSurface.withOpacity(0.4)),
                     ],
                   ),
                 ),
@@ -238,7 +238,7 @@ class _SplitPdfPageState extends State<SplitPdfPage> {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       child: Text('—', style: TextStyle(
-                        color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                        color: theme.colorScheme.onSurface.withOpacity(0.5),
                         fontSize: 20,
                       )),
                     ),
@@ -269,7 +269,7 @@ class _SplitPdfPageState extends State<SplitPdfPage> {
                 Text(
                   '共 $_totalPages 页',
                   style: TextStyle(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                    color: theme.colorScheme.onSurface.withOpacity(0.4),
                     fontSize: 12,
                   ),
                 ),

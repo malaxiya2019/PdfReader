@@ -129,13 +129,13 @@ class _MergePdfPageState extends State<MergePdfPage> {
                         Icon(
                           Icons.note_add_outlined,
                           size: 72,
-                          color: theme.colorScheme.onSurface.withValues(alpha: 0.15),
+                          color: theme.colorScheme.onSurface.withOpacity(0.15),
                         ),
                         const SizedBox(height: 16),
                         Text(
                           '选择要合并的 PDF 文件',
                           style: TextStyle(
-                            color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                            color: theme.colorScheme.onSurface.withOpacity(0.6),
                             fontSize: 16,
                           ),
                         ),
@@ -143,7 +143,7 @@ class _MergePdfPageState extends State<MergePdfPage> {
                         Text(
                           '至少选择 2 个文件',
                           style: TextStyle(
-                            color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                            color: theme.colorScheme.onSurface.withOpacity(0.4),
                             fontSize: 13,
                           ),
                         ),
@@ -175,7 +175,7 @@ class _MergePdfPageState extends State<MergePdfPage> {
                             width: 36,
                             height: 36,
                             decoration: BoxDecoration(
-                              color: theme.colorScheme.primary.withValues(alpha: 0.12),
+                              color: theme.colorScheme.primary.withOpacity(0.12),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Center(
@@ -201,7 +201,7 @@ class _MergePdfPageState extends State<MergePdfPage> {
                           subtitle: Text(
                             _formatSize(File(path).lengthSync()),
                             style: TextStyle(
-                              color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                              color: theme.colorScheme.onSurface.withOpacity(0.5),
                               fontSize: 11,
                             ),
                           ),
@@ -211,7 +211,7 @@ class _MergePdfPageState extends State<MergePdfPage> {
                               if (index > 0)
                                 IconButton(
                                   icon: Icon(Icons.arrow_upward,
-                                      size: 18, color: theme.colorScheme.onSurface.withValues(alpha: 0.4)),
+                                      size: 18, color: theme.colorScheme.onSurface.withOpacity(0.4)),
                                   onPressed: () => _moveUp(index),
                                   constraints: const BoxConstraints(),
                                   padding: const EdgeInsets.all(4),
@@ -219,7 +219,7 @@ class _MergePdfPageState extends State<MergePdfPage> {
                               if (index < _selectedFiles.length - 1)
                                 IconButton(
                                   icon: Icon(Icons.arrow_downward,
-                                      size: 18, color: theme.colorScheme.onSurface.withValues(alpha: 0.4)),
+                                      size: 18, color: theme.colorScheme.onSurface.withOpacity(0.4)),
                                   onPressed: () => _moveDown(index),
                                   constraints: const BoxConstraints(),
                                   padding: const EdgeInsets.all(4),

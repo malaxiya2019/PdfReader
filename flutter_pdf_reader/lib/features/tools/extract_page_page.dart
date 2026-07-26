@@ -138,11 +138,11 @@ class _ExtractPagePageState extends State<ExtractPagePage> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.file_copy_outlined, size: 72,
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.15)),
+              color: theme.colorScheme.onSurface.withOpacity(0.15)),
           const SizedBox(height: 16),
           Text('选择要提取页面的 PDF',
               style: TextStyle(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                  color: theme.colorScheme.onSurface.withOpacity(0.6),
                   fontSize: 16)),
         ],
       ),
@@ -168,7 +168,7 @@ class _ExtractPagePageState extends State<ExtractPagePage> {
               const Spacer(),
               Text('$_totalPages 页',
                   style: TextStyle(
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                      color: theme.colorScheme.onSurface.withOpacity(0.5),
                       fontSize: 13)),
             ],
           ),
@@ -179,7 +179,7 @@ class _ExtractPagePageState extends State<ExtractPagePage> {
             children: [
               Text('选择要提取的页面（点击选择）',
                   style: TextStyle(
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                      color: theme.colorScheme.onSurface.withOpacity(0.5),
                       fontSize: 13)),
               const Spacer(),
               TextButton(
@@ -226,13 +226,13 @@ class _ExtractPagePageState extends State<ExtractPagePage> {
                   duration: const Duration(milliseconds: 200),
                   decoration: BoxDecoration(
                     color: selected
-                        ? theme.colorScheme.secondary.withValues(alpha: 0.15)
+                        ? theme.colorScheme.secondary.withOpacity(0.15)
                         : theme.cardColor,
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
                       color: selected
                           ? theme.colorScheme.secondary
-                          : theme.colorScheme.outline.withValues(alpha: 0.2),
+                          : theme.colorScheme.outline.withOpacity(0.2),
                       width: selected ? 2 : 1,
                     ),
                   ),

@@ -159,8 +159,8 @@ class _AIAssistantPageState extends State<AIAssistantPage> {
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
                 color: isCloud
-                    ? theme.colorScheme.primary.withValues(alpha: 0.15)
-                    : theme.colorScheme.secondary.withValues(alpha: 0.15),
+                    ? theme.colorScheme.primary.withOpacity(0.15)
+                    : theme.colorScheme.secondary.withOpacity(0.15),
                 borderRadius: BorderRadius.circular(4),
               ),
               child: Text(
@@ -266,7 +266,7 @@ class _AIAssistantPageState extends State<AIAssistantPage> {
                 color: theme.colorScheme.surface,
                 border: Border(
                   top: BorderSide(
-                      color: theme.colorScheme.outline.withValues(alpha: 0.1)),
+                      color: theme.colorScheme.outline.withOpacity(0.1)),
                 ),
               ),
               child: Row(
@@ -328,7 +328,7 @@ class _AIAssistantPageState extends State<AIAssistantPage> {
               '当前 PDF：${widget.pdfName}',
               textAlign: TextAlign.center,
               style: TextStyle(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                  color: theme.colorScheme.onSurface.withOpacity(0.5),
                   fontSize: 13),
             ),
             const SizedBox(height: 24),
@@ -345,14 +345,14 @@ class _AIAssistantPageState extends State<AIAssistantPage> {
             Text(
               isCloud ? '已连接 API，可生成式 AI 回答' : '提取式摘要（无需网络）',
               style: TextStyle(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                  color: theme.colorScheme.onSurface.withOpacity(0.4),
                   fontSize: 12),
             ),
             const SizedBox(height: 32),
             Text(
               '点击下方按钮开始使用',
               style: TextStyle(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                  color: theme.colorScheme.onSurface.withOpacity(0.4),
                   fontSize: 13),
             ),
           ],
@@ -409,7 +409,7 @@ class _AIAssistantPageState extends State<AIAssistantPage> {
                   const SizedBox(width: 8),
                   Text('处理中...',
                       style: TextStyle(
-                          color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                          color: theme.colorScheme.onSurface.withOpacity(0.5),
                           fontSize: 13)),
                 ],
               )
@@ -429,7 +429,7 @@ class _AIAssistantPageState extends State<AIAssistantPage> {
     required VoidCallback onTap,
   }) {
     return Card(
-      color: color.withValues(alpha: 0.1),
+      color: color.withOpacity(0.1),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),

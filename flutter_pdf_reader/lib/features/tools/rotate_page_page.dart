@@ -143,11 +143,11 @@ class _RotatePagePageState extends State<RotatePagePage> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.rotate_right, size: 72,
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.15)),
+              color: theme.colorScheme.onSurface.withOpacity(0.15)),
           const SizedBox(height: 16),
           Text('选择要旋转页面的 PDF',
               style: TextStyle(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                  color: theme.colorScheme.onSurface.withOpacity(0.6),
                   fontSize: 16)),
         ],
       ),
@@ -173,7 +173,7 @@ class _RotatePagePageState extends State<RotatePagePage> {
               const Spacer(),
               Text('$_totalPages 页',
                   style: TextStyle(
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                      color: theme.colorScheme.onSurface.withOpacity(0.5),
                       fontSize: 13)),
             ],
           ),
@@ -198,7 +198,7 @@ class _RotatePagePageState extends State<RotatePagePage> {
             children: [
               Text('选择页面',
                   style: TextStyle(
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                      color: theme.colorScheme.onSurface.withOpacity(0.6),
                       fontSize: 13)),
               const Spacer(),
               TextButton(
@@ -245,13 +245,13 @@ class _RotatePagePageState extends State<RotatePagePage> {
                   duration: const Duration(milliseconds: 200),
                   decoration: BoxDecoration(
                     color: selected
-                        ? theme.colorScheme.primary.withValues(alpha: 0.15)
+                        ? theme.colorScheme.primary.withOpacity(0.15)
                         : theme.cardColor,
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
                       color: selected
                           ? theme.colorScheme.primary
-                          : theme.colorScheme.outline.withValues(alpha: 0.2),
+                          : theme.colorScheme.outline.withOpacity(0.2),
                       width: selected ? 2 : 1,
                     ),
                   ),
@@ -267,7 +267,7 @@ class _RotatePagePageState extends State<RotatePagePage> {
                         size: 18,
                         color: selected
                             ? theme.colorScheme.primary
-                            : theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                            : theme.colorScheme.onSurface.withOpacity(0.4),
                       ),
                       const SizedBox(height: 4),
                       Text('$pageNum',

@@ -366,7 +366,7 @@ class _ScanPageState extends State<ScanPage> {
                   Text(
                     '${_imageFile!.lengthSync() ~/ 1024} KB',
                     style: TextStyle(
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                      color: theme.colorScheme.onSurface.withOpacity(0.4),
                       fontSize: 12,
                     ),
                   ),
@@ -383,11 +383,11 @@ class _ScanPageState extends State<ScanPage> {
                   children: [
                     Icon(Icons.document_scanner,
                         size: 72,
-                        color: theme.colorScheme.onSurface.withValues(alpha: 0.12)),
+                        color: theme.colorScheme.onSurface.withOpacity(0.12)),
                     const SizedBox(height: 16),
                     Text('扫描文档或选择图片进行 OCR',
                         style: TextStyle(
-                            color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                            color: theme.colorScheme.onSurface.withOpacity(0.5),
                             fontSize: 15)),
                     const SizedBox(height: 24),
                     Row(
@@ -440,7 +440,7 @@ class _ScanPageState extends State<ScanPage> {
                     const Spacer(),
                     Text('${_ocrResult!.length} 字符',
                         style: TextStyle(
-                            color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                            color: theme.colorScheme.onSurface.withOpacity(0.4),
                             fontSize: 12)),
                   ],
                 ),
@@ -492,7 +492,7 @@ class _ScanPageState extends State<ScanPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.15),
+        color: color.withOpacity(0.15),
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(text,
@@ -512,9 +512,9 @@ class _ScanPageState extends State<ScanPage> {
         width: 120,
         padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.1),
+          color: color.withOpacity(0.1),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withValues(alpha: 0.3)),
+          border: Border.all(color: color.withOpacity(0.3)),
         ),
         child: Column(
           children: [

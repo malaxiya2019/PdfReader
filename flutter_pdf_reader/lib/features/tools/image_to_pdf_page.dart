@@ -123,13 +123,13 @@ class _ImageToPdfPageState extends State<ImageToPdfPage> {
                         Icon(
                           Icons.photo_library_outlined,
                           size: 72,
-                          color: theme.colorScheme.onSurface.withValues(alpha: 0.15),
+                          color: theme.colorScheme.onSurface.withOpacity(0.15),
                         ),
                         const SizedBox(height: 16),
                         Text(
                           '选择要转换为 PDF 的图片',
                           style: TextStyle(
-                            color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                            color: theme.colorScheme.onSurface.withOpacity(0.6),
                             fontSize: 16,
                           ),
                         ),
@@ -137,7 +137,7 @@ class _ImageToPdfPageState extends State<ImageToPdfPage> {
                         Text(
                           '支持 PNG、JPG、BMP、WebP',
                           style: TextStyle(
-                            color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                            color: theme.colorScheme.onSurface.withOpacity(0.4),
                             fontSize: 13,
                           ),
                         ),
@@ -175,9 +175,9 @@ class _ImageToPdfPageState extends State<ImageToPdfPage> {
                               errorBuilder: (_, __, ___) => Container(
                                 width: 40,
                                 height: 40,
-                                color: theme.colorScheme.onSurface.withValues(alpha: 0.08),
+                                color: theme.colorScheme.onSurface.withOpacity(0.08),
                                 child: Icon(Icons.broken_image,
-                                    color: theme.colorScheme.onSurface.withValues(alpha: 0.3)),
+                                    color: theme.colorScheme.onSurface.withOpacity(0.3)),
                               ),
                             ),
                           ),
@@ -193,7 +193,7 @@ class _ImageToPdfPageState extends State<ImageToPdfPage> {
                           subtitle: Text(
                             '第 ${index + 1} 页',
                             style: TextStyle(
-                              color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                              color: theme.colorScheme.onSurface.withOpacity(0.5),
                               fontSize: 11,
                             ),
                           ),
@@ -203,7 +203,7 @@ class _ImageToPdfPageState extends State<ImageToPdfPage> {
                               if (index > 0)
                                 IconButton(
                                   icon: Icon(Icons.arrow_upward,
-                                      size: 18, color: theme.colorScheme.onSurface.withValues(alpha: 0.4)),
+                                      size: 18, color: theme.colorScheme.onSurface.withOpacity(0.4)),
                                   onPressed: () => _moveUp(index),
                                   constraints: const BoxConstraints(),
                                   padding: const EdgeInsets.all(4),
@@ -211,7 +211,7 @@ class _ImageToPdfPageState extends State<ImageToPdfPage> {
                               if (index < _selectedImages.length - 1)
                                 IconButton(
                                   icon: Icon(Icons.arrow_downward,
-                                      size: 18, color: theme.colorScheme.onSurface.withValues(alpha: 0.4)),
+                                      size: 18, color: theme.colorScheme.onSurface.withOpacity(0.4)),
                                   onPressed: () => _moveDown(index),
                                   constraints: const BoxConstraints(),
                                   padding: const EdgeInsets.all(4),

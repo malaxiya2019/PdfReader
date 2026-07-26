@@ -4,7 +4,7 @@ import 'dart:ui' show Offset, Rect;
 import 'dart:ui' as ui show Image, ImageByteFormat;
 import 'dart:typed_data';
 import 'package:image/image.dart' as img;
-import 'package:pdf_render/pdf_render.dart';
+import 'package:pdf_render/pdf_render.dart' as pdf_render;
 
 import 'package:path_provider/path_provider.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
@@ -267,7 +267,7 @@ class PdfToolService {
     required bool saveToGallery,
   }) async {
     try {
-      final doc = await PdfDocument.openFile(inputPath);
+      final doc = await pdf_render.PdfDocument.openFile(inputPath);
       final totalPages = doc.countPages;
       final ext = imageFormat.toLowerCase() == 'jpg' ? 'jpg' : 'png';
 
