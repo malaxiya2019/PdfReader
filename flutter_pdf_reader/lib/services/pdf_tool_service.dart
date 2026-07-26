@@ -1,6 +1,10 @@
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:ui' show Offset, Rect;
+import 'dart:ui' as ui show Image;
+import 'dart:typed_data';
+import 'package:image/image.dart' as img;
+import 'package:pdf_render/pdf_render.dart';
 
 import 'package:path_provider/path_provider.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
@@ -21,7 +25,8 @@ class PdfToolResult {
 
 /// PDF 工具服务
 ///
-/// 使用 Syncfusion v25+ 的 PdfPage.toImage() API 进行 PDF 转图片
+/// 支持 PDF 编辑、转换、合并/拆分等功能
+/// PDF 转图片使用 pdf_render 纯 Dart 方案
 class PdfToolService {
   PdfToolService._();
 
@@ -117,6 +122,20 @@ class PdfToolService {
     final now = DateTime.now();
     return '${prefix}${now.millisecondsSinceEpoch}.$ext';
   }
+
+  /// 通知媒体库扫描新文件（让图片出现在相册中）
+  static Future<void> _notifyMediaScanner(String path) async {
+    try {
+      await Process.run('am', [
+        'broadcast',
+        '-a',
+        'android.intent.action.MEDIA_SCANNER_SCAN_FILE',
+        '-d',
+        'file://$path',
+      ]);
+    } catch (_) {}
+  }
+
 
   // ============================================================
   // Phase 5: 基础工具
@@ -239,7 +258,7 @@ class PdfToolService {
   }
 
   // ============================================================
-  // PDF 转图片（使用 Syncfusion v25+ PdfPage.toImage() API）
+  // PDF 转图片（使用 pdf_render 纯 Dart 方案，不依赖 Syncfusion 付费 API）
   // ============================================================
   static Future<PdfToolResult> pdfToImages({
     required String inputPath,
@@ -248,23 +267,83 @@ class PdfToolService {
     required bool saveToGallery,
   }) async {
     try {
-      final bytes = await _readBytesInIsolate(inputPath);
-      final doc = PdfDocument(inputBytes: bytes);
+      final doc = await PdfDocument.openFile(inputPath);
+      final totalPages = doc.countPages;
+      final ext = imageFormat.toLowerCase() == 'jpg' ? 'jpg' : 'png';
+
+      // 准备图库目录
+      Directory? galleryDir;
+      if (saveToGallery) {
+        galleryDir = await getGalleryDir();
+        final pdfName = inputPath.split('/').last.replaceAll('.pdf', '');
+        final subDir = Directory('${galleryDir.path}/$pdfName');
+        if (!await subDir.exists()) {
+          await subDir.create(recursive: true);
+        }
+        galleryDir = subDir;
+      }
+
+      int exportedCount = 0;
+      for (int i = 0; i < totalPages; i++) {
+        final page = await doc.getPage(i);
+        final pageImage = await page.render(scale: 2.0);
+        final image = pageImage.image;
+
+        Uint8List imageBytes;
+        if (imageFormat == 'jpg') {
+          // 获取原始 RGBA 数据 → 用 image 包编码为 JPEG
+          final byteData = await image.toByteData(
+            format: ui.ImageByteFormat.rawRgba,
+          );
+          final rawBytes = byteData!.buffer.asUint8List();
+          final decoded = img.Image.fromBytes(
+            width: pageImage.width,
+            height: pageImage.height,
+            bytes: rawBytes.buffer,
+            numChannels: 4,
+          );
+          imageBytes = Uint8List.fromList(img.encodeJpg(decoded, quality: 92));
+        } else {
+          // PNG：直接使用 toByteData
+          final byteData = await image.toByteData(
+            format: ui.ImageByteFormat.png,
+          );
+          imageBytes = byteData!.buffer.asUint8List();
+        }
+
+        // 保存到输出目录或相册目录
+        final outPath = galleryDir != null
+            ? '${galleryDir.path}/page_${i + 1}.$ext'
+            : '$outputDir/page_${i + 1}.$ext';
+        await File(outPath).writeAsBytes(imageBytes);
+        exportedCount++;
+
+        image.dispose();
+        page.dispose();
+      }
+
       doc.dispose();
 
-      // Syncfusion v28+ 移除了 PdfPage.toImage()，PDF转图片功能不可用
+      // 通知媒体库扫描
+      if (galleryDir != null) {
+        await _notifyMediaScanner(galleryDir.path);
+      }
+
       return PdfToolResult(
-        success: false,
-        message: 'PDF 转图片功能在当前 Syncfusion 版本中不可用。'
-            '请降级到 syncfusion_flutter_pdf: ^24.0.0 或使用 SfPdfViewer 截图。',
+        success: true,
+        message: saveToGallery
+            ? '已导出 $totalPages 页为 $imageFormat 格式并保存到相册'
+            : '已导出 $totalPages 页为 $imageFormat 格式',
+        outputPath: outputDir,
+        exportedCount: totalPages,
       );
     } catch (e) {
       return PdfToolResult(success: false, message: 'PDF 转图片失败: $e');
     }
   }
 
-  /// ---- 图片转 PDF ----
   static Future<PdfToolResult> imagesToPDF({
+
     required List<String> imagePaths,
     required String outputPath,
   }) async {
