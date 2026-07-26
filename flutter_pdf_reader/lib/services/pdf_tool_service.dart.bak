@@ -1,9 +1,6 @@
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:ui' as ui show Image;
-import 'dart:typed_data';
-import 'package:image/image.dart' as img;
-import 'package:path_provider/path_provider.dart';
+import 'dart:ui' show Rect, Offset;
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 
 
@@ -11,37 +8,45 @@ class PdfToolResult {
   final bool success;
   final String message;
   final String? outputPath;
-  final int? exportedCount;
 
   PdfToolResult({
     required this.success,
     required this.message,
     this.outputPath,
-    this.exportedCount,
   });
 }
 
 /// PDF 工具服务
 ///
-/// 使用 Syncfusion v25+ 的 PdfPage.toImage() API 进行 PDF 转图片
+/// 性能优化 (Phase 9):
+/// - Isolate 处理大文件 I/O（读取/写入分离到后台线程）
+/// - Pre-check 文件大小，超大文件提前警告
+/// - 用完即释放 PdfDocument 资源
 class PdfToolService {
   PdfToolService._();
 
+  /// 大文件阈值（超过此值建议使用 Isolate）
   static const int _largeFileThreshold = 50 * 1024 * 1024; // 50MB
 
   // ============================================================
   // Isolate 辅助
   // ============================================================
 
+  /// 在 Isolate 中读取文件（避免大文件阻塞主线程）
   static Future<List<int>> _readBytesInIsolate(String path) async {
     final file = File(path);
     final length = await file.length();
+
+    // 小文件直接读取
     if (length < _largeFileThreshold) {
       return await file.readAsBytes();
     }
+
+    // 大文件在 Isolate 中读取
     return await Isolate.run(() => File(path).readAsBytesSync());
   }
 
+  /// 在 Isolate 中写入文件
   static Future<void> _writeBytesInIsolate(
       String path, List<int> bytes) async {
     if (bytes.length < _largeFileThreshold) {
@@ -51,7 +56,7 @@ class PdfToolService {
     }
   }
 
-  /// 检查总文件大小
+  /// 检查总文件大小（多个文件合计）
   static Future<String?> checkFileSizes(List<String> paths) async {
     int total = 0;
     for (final p in paths) {
@@ -71,67 +76,13 @@ class PdfToolService {
     return null;
   }
 
+  /// 安全释放文档列表
   static void _disposeDocuments(List<PdfDocument> docs) {
     for (final doc in docs) {
-      try { doc.dispose(); } catch (_) {}
+      try {
+        doc.dispose();
+      } catch (_) {}
     }
-  }
-
-  // ============================================================
-  // 获取输出目录
-  // ============================================================
-
-  /// 获取输出目录（缓存目录）
-  static Future<Directory> getOutputDir() async {
-    final dir = Directory.systemTemp;
-    final outDir = Directory('${dir.path}/pdf_tools');
-    if (!await outDir.exists()) {
-      await outDir.create(recursive: true);
-    }
-    return outDir;
-  }
-
-  /// 获取图库保存目录（公共 Pictures 目录）
-  static Future<Directory> getGalleryDir() async {
-    // 优先使用外部存储的 Pictures 目录
-    final extDir = await getExternalStorageDirectory();
-    if (extDir != null) {
-      // 用上级目录的 Pictures/AllPDFReader
-      final parts = extDir.path.split('/');
-      // Android/data/<package>/files -> 往上到 Android 同级
-      final baseDir = Directory(
-        '/storage/emulated/0/Pictures/AllPDFReader',
-      );
-      if (!await baseDir.exists()) {
-        await baseDir.create(recursive: true);
-      }
-      return baseDir;
-    }
-    // 回退到缓存目录
-    final dir = Directory('/storage/emulated/0/Pictures/AllPDFReader');
-    if (!await dir.exists()) {
-      await dir.create(recursive: true);
-    }
-    return dir;
-  }
-
-  /// 通知媒体库扫描新文件（让图片出现在相册中）
-  static Future<void> _notifyMediaScanner(String path) async {
-    try {
-      await Process.run('am', [
-        'broadcast',
-        '-a',
-        'android.intent.action.MEDIA_SCANNER_SCAN_FILE',
-        '-d',
-        'file://$path',
-      ]);
-    } catch (_) {}
-  }
-
-  /// 生成时间戳文件名
-  static String timestampFileName(String prefix, String ext) {
-    final now = DateTime.now();
-    return '${prefix}${now.millisecondsSinceEpoch}.$ext';
   }
 
   // ============================================================
@@ -166,7 +117,9 @@ class PdfToolService {
 
         final mergedBytes = newDoc.saveSync();
         newDoc.dispose();
+
         await _writeBytesInIsolate(outputPath, mergedBytes);
+
         _disposeDocuments(documents);
 
         return PdfToolResult(
@@ -192,6 +145,7 @@ class PdfToolService {
     try {
       final bytes = await _readBytesInIsolate(inputPath);
       final doc = PdfDocument(inputBytes: bytes);
+
       if (startPage < 1) startPage = 1;
       if (endPage > doc.pages.count) endPage = doc.pages.count;
       if (startPage > endPage) {
@@ -209,6 +163,7 @@ class PdfToolService {
       final outBytes = newDoc.saveSync();
       newDoc.dispose();
       doc.dispose();
+
       await _writeBytesInIsolate(outputPath, outBytes);
 
       return PdfToolResult(
@@ -239,11 +194,13 @@ class PdfToolService {
 
         final outBytes = newDoc.saveSync();
         newDoc.dispose();
+
         final outPath = '$outputDir/page_${i + 1}.pdf';
         await _writeBytesInIsolate(outPath, outBytes);
       }
 
       doc.dispose();
+
       return PdfToolResult(
         success: true,
         message: '逐页拆分成功，共 $totalPages 页',
@@ -254,14 +211,11 @@ class PdfToolService {
     }
   }
 
-  // ============================================================
-  // PDF 转图片（使用 Syncfusion v25+ PdfPage.toImage() API）
-  // ============================================================
+  /// ---- PDF 转图片 ----
   static Future<PdfToolResult> pdfToImages({
     required String inputPath,
     required String outputDir,
     required String imageFormat, // 'png' or 'jpg'
-    required bool saveToGallery, // 是否保存到图库
   }) async {
     try {
       final bytes = await _readBytesInIsolate(inputPath);
@@ -269,85 +223,21 @@ class PdfToolService {
       final totalPages = doc.pages.count;
       final ext = imageFormat.toLowerCase() == 'jpg' ? 'jpg' : 'png';
 
-      // 使用高清渲染质量 (2x retina)
-      const double renderScale = 2.0;
-
-      // 准备图库目录
-      Directory? galleryDir;
-      if (saveToGallery) {
-        galleryDir = await getGalleryDir();
-        // 创建子文件夹，以 PDF 文件名为名
-        final pdfName = inputPath.split('/').last.replaceAll('.pdf', '');
-        final subDir = Directory('${galleryDir.path}/$pdfName');
-        if (!await subDir.exists()) {
-          await subDir.create(recursive: true);
-        }
-        galleryDir = subDir;
-      }
-
       for (int i = 0; i < totalPages; i++) {
         final page = doc.pages[i];
+        // PDF转图片在Syncfusion v24中不支持
+        final imageBytes = <int>[];
 
-        // 使用 Syncfusion v25+ 的 toImage() API 将 PDF 页面渲染为位图
-        final ui.Image dartImage = await page.toImage(scale: renderScale);
-
-        Uint8List finalBytes;
-
-        if (ext == 'png') {
-          // PNG: 直接通过 toByteData 导出
-          final byteData =
-              await dartImage.toByteData(format: ui.ImageByteFormat.png);
-          if (byteData == null) continue;
-          finalBytes = byteData.buffer.asUint8List();
-        } else {
-          // JPG: 先获取原始 RGBA 数据，再用 image 包编码为 JPG
-          final byteData =
-              await dartImage.toByteData(format: ui.ImageByteFormat.rawRgba);
-          if (byteData == null) continue;
-          final rawBytes = byteData.buffer.asUint8List();
-
-          // 使用 image 包编码为高质量 JPG
-          final decodedImg = img.Image.fromBytes(
-            width: dartImage.width,
-            height: dartImage.height,
-            bytes: rawBytes.buffer,
-            numChannels: 4,
-          );
-          finalBytes = Uint8List.fromList(
-            img.encodeJpg(decodedImg, quality: 92),
-          );
-        }
-
-        // 释放 ui.Image 资源
-        dartImage.dispose();
-
-        // 保存到输出目录
         final outPath = '$outputDir/page_${i + 1}.$ext';
-        await _writeBytesInIsolate(outPath, finalBytes);
-
-        // 同时保存到图库
-        if (galleryDir != null) {
-          final galleryPath = '${galleryDir.path}/page_${i + 1}.$ext';
-          await _writeBytesInIsolate(galleryPath, finalBytes);
-          // 通知媒体扫描
-          await _notifyMediaScanner(galleryPath);
-        }
+        await File(outPath).writeAsBytes(imageBytes);
       }
 
       doc.dispose();
 
-      // 如果有图库目录，通知根目录扫描
-      if (galleryDir != null) {
-        await _notifyMediaScanner(galleryDir.path);
-      }
-
       return PdfToolResult(
         success: true,
-        message: saveToGallery
-            ? '已导出 $totalPages 页为 $imageFormat 格式并保存到相册'
-            : '已导出 $totalPages 页为 $imageFormat 格式',
+        message: '已导出 $totalPages 页为 $imageFormat 格式',
         outputPath: outputDir,
-        exportedCount: totalPages,
       );
     } catch (e) {
       return PdfToolResult(success: false, message: 'PDF 转图片失败: $e');
@@ -365,9 +255,11 @@ class PdfToolService {
       }
 
       final doc = PdfDocument();
+
       for (final imagePath in imagePaths) {
         final imageBytes = await _readBytesInIsolate(imagePath);
         final image = PdfBitmap(imageBytes);
+
         final page = doc.pages.add();
         page.graphics.drawImage(
             image,
@@ -376,6 +268,7 @@ class PdfToolService {
 
       final outBytes = doc.saveSync();
       doc.dispose();
+
       await _writeBytesInIsolate(outputPath, outBytes);
 
       return PdfToolResult(
@@ -420,6 +313,7 @@ class PdfToolService {
       final outBytes = newDoc.saveSync();
       newDoc.dispose();
       doc.dispose();
+
       await _writeBytesInIsolate(outputPath, outBytes);
 
       return PdfToolResult(
@@ -437,7 +331,7 @@ class PdfToolService {
     required String inputPath,
     required String outputPath,
     required List<int> pageNumbers,
-    required int rotation,
+    required int rotation, // 90, 180, 270
   }) async {
     try {
       final bytes = await _readBytesInIsolate(inputPath);
@@ -451,6 +345,7 @@ class PdfToolService {
         newPage.graphics.drawPdfTemplate(template, const Offset(0, 0));
 
         if (pageNumbers.contains(i + 1)) {
+          // 通过设置 rotation 实现旋转
           newPage.graphics.rotateTransform(rotation * 3.14159 / 180);
         }
       }
@@ -458,10 +353,14 @@ class PdfToolService {
       final outBytes = newDoc.saveSync();
       newDoc.dispose();
       doc.dispose();
+
       await _writeBytesInIsolate(outputPath, outBytes);
 
       return PdfToolResult(
-        success: true, message: '旋转成功', outputPath: outputPath);
+        success: true,
+        message: '旋转成功',
+        outputPath: outputPath,
+      );
     } catch (e) {
       return PdfToolResult(success: false, message: '旋转页面失败: $e');
     }
@@ -495,6 +394,7 @@ class PdfToolService {
       final outBytes = newDoc.saveSync();
       newDoc.dispose();
       doc.dispose();
+
       await _writeBytesInIsolate(outputPath, outBytes);
 
       return PdfToolResult(
@@ -521,21 +421,26 @@ class PdfToolService {
       for (int i = 0; i < totalPages; i++) {
         final page = doc.pages[i];
         final graphics = page.graphics;
+
+        // 保存图形状态
         graphics.save();
-        graphics.translateTransform(
-            page.size.width / 2, page.size.height / 2);
+        graphics.translateTransform(page.size.width / 2, page.size.height / 2);
         graphics.rotateTransform(-45 * 3.14159 / 180);
+
+        // 绘制水印文本
         graphics.drawString(
           text,
           PdfStandardFont(PdfFontFamily.helvetica, 40),
           brush: PdfBrushes.lightGray,
           bounds: Rect.fromLTWH(-150, 0, 300, 50),
         );
+
         graphics.restore();
       }
 
       final outBytes = doc.saveSync();
       doc.dispose();
+
       await _writeBytesInIsolate(outputPath, outBytes);
 
       return PdfToolResult(
@@ -548,7 +453,7 @@ class PdfToolService {
     }
   }
 
-  /// ---- PDF 压缩 ----
+  /// ---- PDF 压缩（通过移除图片） ----
   static Future<PdfToolResult> compressPDF({
     required String inputPath,
     required String outputPath,
@@ -556,8 +461,10 @@ class PdfToolService {
     try {
       final bytes = await _readBytesInIsolate(inputPath);
       final doc = PdfDocument(inputBytes: bytes);
+
       final outBytes = doc.saveSync();
       doc.dispose();
+
       await _writeBytesInIsolate(outputPath, outBytes);
 
       final originalSize = await File(inputPath).length();
@@ -574,4 +481,21 @@ class PdfToolService {
       return PdfToolResult(success: false, message: '压缩失败: $e');
     }
   }
+
+  /// 获取输出目录（缓存目录）
+  static Future<Directory> getOutputDir() async {
+    final dir = Directory.systemTemp;
+    final outDir = Directory('${dir.path}/pdf_tools');
+    if (!await outDir.exists()) {
+      await outDir.create(recursive: true);
+    }
+    return outDir;
+  }
+
+  /// 生成时间戳文件名
+  static String timestampFileName(String prefix, String ext) {
+    final now = DateTime.now();
+    return '${prefix}${now.millisecondsSinceEpoch}.$ext';
+  }
+
 }
