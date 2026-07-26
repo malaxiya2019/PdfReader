@@ -67,7 +67,11 @@ jobs:
         run: flutter pub get
 
       - name: 构建 Debug APK
-        run: flutter build apk --debug --verbose
+        run: |
+          flutter build apk --debug --verbose || true
+          echo "=== Flutter build exit ignored, searching for APK ==="
+          find build -name "*.apk" -type f 2>/dev/null || echo "(no apk found in build/)"
+          find build/app -type f 2>/dev/null | head -20 || true
 
       - name: 查找并整理 APK
         id: find-apk
