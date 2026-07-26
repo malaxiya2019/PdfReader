@@ -213,6 +213,7 @@ class PdfToolService {
     try {
       final bytes = await _readBytesInIsolate(inputPath);
       final doc = PdfDocument(inputBytes: bytes);
+      final totalPages = doc.pages.count;
 
       for (int i = 0; i < totalPages; i++) {
         final newDoc = PdfDocument();
@@ -243,28 +244,12 @@ class PdfToolService {
   static Future<PdfToolResult> pdfToImages({
     required String inputPath,
     required String outputDir,
-    required String imageFormat, // 'png' or 'jpg'
-    required bool saveToGallery, // 是否保存到图库
+    required String imageFormat,
+    required bool saveToGallery,
   }) async {
     try {
       final bytes = await _readBytesInIsolate(inputPath);
       final doc = PdfDocument(inputBytes: bytes);
-
-      // 使用高清渲染质量 (2x retina)
-
-      // 准备图库目录
-      Directory? galleryDir;
-      if (saveToGallery) {
-        galleryDir = await getGalleryDir();
-        // 创建子文件夹，以 PDF 文件名为名
-        final pdfName = inputPath.split('/').last.replaceAll('.pdf', '');
-        final subDir = Directory('${galleryDir.path}/$pdfName');
-        if (!await subDir.exists()) {
-          await subDir.create(recursive: true);
-        }
-        galleryDir = subDir;
-      }
-
       doc.dispose();
 
       // Syncfusion v28+ 移除了 PdfPage.toImage()，PDF转图片功能不可用
@@ -325,6 +310,7 @@ class PdfToolService {
     try {
       final bytes = await _readBytesInIsolate(inputPath);
       final doc = PdfDocument(inputBytes: bytes);
+      final totalPages = doc.pages.count;
 
       final deleteSet = pageNumbers
           .where((n) => n >= 1 && n <= totalPages)
@@ -365,6 +351,7 @@ class PdfToolService {
     try {
       final bytes = await _readBytesInIsolate(inputPath);
       final doc = PdfDocument(inputBytes: bytes);
+      final totalPages = doc.pages.count;
 
       final newDoc = PdfDocument();
       for (int i = 0; i < totalPages; i++) {
@@ -398,6 +385,7 @@ class PdfToolService {
     try {
       final bytes = await _readBytesInIsolate(inputPath);
       final doc = PdfDocument(inputBytes: bytes);
+      final totalPages = doc.pages.count;
 
       final extractSet = pageNumbers
           .where((n) => n >= 1 && n <= totalPages)
@@ -437,6 +425,7 @@ class PdfToolService {
     try {
       final bytes = await _readBytesInIsolate(inputPath);
       final doc = PdfDocument(inputBytes: bytes);
+      final totalPages = doc.pages.count;
 
       for (int i = 0; i < totalPages; i++) {
         final page = doc.pages[i];
