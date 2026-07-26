@@ -112,19 +112,6 @@ class PdfToolService {
     return dir;
   }
 
-  /// 通知媒体库扫描新文件（让图片出现在相册中）
-  static Future<void> _notifyMediaScanner(String path) async {
-    try {
-      await Process.run('am', [
-        'broadcast',
-        '-a',
-        'android.intent.action.MEDIA_SCANNER_SCAN_FILE',
-        '-d',
-        'file://$path',
-      ]);
-    } catch (_) {}
-  }
-
   /// 生成时间戳文件名
   static String timestampFileName(String prefix, String ext) {
     final now = DateTime.now();
@@ -226,7 +213,6 @@ class PdfToolService {
     try {
       final bytes = await _readBytesInIsolate(inputPath);
       final doc = PdfDocument(inputBytes: bytes);
-      final totalPages = doc.pages.count;
 
       for (int i = 0; i < totalPages; i++) {
         final newDoc = PdfDocument();
@@ -263,7 +249,6 @@ class PdfToolService {
     try {
       final bytes = await _readBytesInIsolate(inputPath);
       final doc = PdfDocument(inputBytes: bytes);
-      final totalPages = doc.pages.count;
 
       // 使用高清渲染质量 (2x retina)
 
@@ -340,7 +325,6 @@ class PdfToolService {
     try {
       final bytes = await _readBytesInIsolate(inputPath);
       final doc = PdfDocument(inputBytes: bytes);
-      final totalPages = doc.pages.count;
 
       final deleteSet = pageNumbers
           .where((n) => n >= 1 && n <= totalPages)
@@ -381,7 +365,6 @@ class PdfToolService {
     try {
       final bytes = await _readBytesInIsolate(inputPath);
       final doc = PdfDocument(inputBytes: bytes);
-      final totalPages = doc.pages.count;
 
       final newDoc = PdfDocument();
       for (int i = 0; i < totalPages; i++) {
@@ -415,7 +398,6 @@ class PdfToolService {
     try {
       final bytes = await _readBytesInIsolate(inputPath);
       final doc = PdfDocument(inputBytes: bytes);
-      final totalPages = doc.pages.count;
 
       final extractSet = pageNumbers
           .where((n) => n >= 1 && n <= totalPages)
@@ -455,7 +437,6 @@ class PdfToolService {
     try {
       final bytes = await _readBytesInIsolate(inputPath);
       final doc = PdfDocument(inputBytes: bytes);
-      final totalPages = doc.pages.count;
 
       for (int i = 0; i < totalPages; i++) {
         final page = doc.pages[i];
