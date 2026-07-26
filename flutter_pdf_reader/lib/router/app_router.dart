@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../features/home/home_page.dart';
-import '../features/reader/pdf_reader_page.dart';
+import '../features/reader/reader_screen.dart';
 
 class AppRouter {
   AppRouter._();
