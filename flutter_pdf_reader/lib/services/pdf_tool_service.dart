@@ -287,12 +287,13 @@ class PdfToolService {
       }
 
       for (int i = 0; i < totalPages; i++) {
-        final int pageIdx = i;
-
-        // Syncfusion v28+ 使用 PdfDocument.exportAsImage() 替代 PdfPage.toImage()
-        final ui.Image dartImage = await doc.exportAsImage(
-          pageIndex: pageIdx,
-          scale: renderScale,
+        // Syncfusion v28+ 移除了 PdfPage.toImage() 且无直接替代 API
+        // PDF 转图片功能需要降级到 Syncfusion v24 或使用 SfPdfViewer 渲染
+        // 此处抛出明确错误提示
+        throw UnsupportedError(
+          'PDF转图片功能在当前 Syncfusion 版本中不可用。
+'
+          '请降级到 syncfusion_flutter_pdf: ^24.0.0 或使用 SfPdfViewer 截图方式。'
         );
 
         Uint8List finalBytes;

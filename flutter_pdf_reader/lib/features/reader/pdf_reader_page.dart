@@ -414,7 +414,7 @@ class _PdfReaderPageState extends State<PdfReaderPage>
     }
   }
 
-  void _onZoomLevelChanged(ZoomLevelChangedDetails details) {
+  void _onZoomLevelChanged(PdfZoomDetails details) {
     final zoom = details.newZoomLevel;
     setState(() {
       _currentZoom = zoom;
@@ -847,8 +847,8 @@ class _PdfReaderPageState extends State<PdfReaderPage>
         onPageChanged: _onPageChanged,
         onZoomLevelChanged: _onZoomLevelChanged,
         onTap: (_) => _toggleControls(),
-        pageLayoutMode: PageLayoutMode.continuous,
-        scrollBehavior: const ScrollBehavior().copyWith(overscroll: false),
+        pageLayoutMode: PdfPageLayoutMode.continuous,
+
       ),
     );
   }
