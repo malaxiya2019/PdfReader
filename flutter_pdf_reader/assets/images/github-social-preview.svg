@@ -1,0 +1,158 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" width="1280" height="640">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0a0a"/>
+      <stop offset="50%" style="stop-color:#1a1a2e"/>
+      <stop offset="100%" style="stop-color:#16213e"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4a90d9;stop-opacity:0.15"/>
+      <stop offset="100%" style="stop-color:#7c3aed;stop-opacity:0.05"/>
+    </linearGradient>
+    <linearGradient id="phone-body" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2a2a2a"/>
+      <stop offset="100%" style="stop-color:#1a1a1a"/>
+    </linearGradient>
+    <linearGradient id="screen-bg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e"/>
+      <stop offset="100%" style="stop-color:#0f0f1a"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#4a90d9"/>
+      <stop offset="100%" style="stop-color:#7c3aed"/>
+    </linearGradient>
+    <linearGradient id="btn-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#4a90d9"/>
+      <stop offset="100%" style="stop-color:#7c3aed"/>
+    </linearGradient>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="8" stdDeviation="24" flood-color="#000" flood-opacity="0.4"/>
+    </filter>
+    <filter id="glow-filter">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <clipPath id="screen-clip">
+      <rect x="540" y="138" width="200" height="356" rx="4"/>
+    </clipPath>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1280" height="640" fill="url(#bg)"/>
+  
+  <!-- Grid pattern -->
+  <g opacity="0.03">
+    <line x1="0" y1="80" x2="1280" y2="80" stroke="#fff" stroke-width="0.5"/>
+    <line x1="0" y1="160" x2="1280" y2="160" stroke="#fff" stroke-width="0.5"/>
+    <line x1="0" y1="240" x2="1280" y2="240" stroke="#fff" stroke-width="0.5"/>
+    <line x1="0" y1="320" x2="1280" y2="320" stroke="#fff" stroke-width="0.5"/>
+    <line x1="0" y1="400" x2="1280" y2="400" stroke="#fff" stroke-width="0.5"/>
+    <line x1="0" y1="480" x2="1280" y2="480" stroke="#fff" stroke-width="0.5"/>
+    <line x1="0" y1="560" x2="1280" y2="560" stroke="#fff" stroke-width="0.5"/>
+    <line x1="160" y1="0" x2="160" y2="640" stroke="#fff" stroke-width="0.5"/>
+    <line x1="320" y1="0" x2="320" y2="640" stroke="#fff" stroke-width="0.5"/>
+    <line x1="480" y1="0" x2="480" y2="640" stroke="#fff" stroke-width="0.5"/>
+    <line x1="640" y1="0" x2="640" y2="640" stroke="#fff" stroke-width="0.5"/>
+    <line x1="800" y1="0" x2="800" y2="640" stroke="#fff" stroke-width="0.5"/>
+    <line x1="960" y1="0" x2="960" y2="640" stroke="#fff" stroke-width="0.5"/>
+    <line x1="1120" y1="0" x2="1120" y2="640" stroke="#fff" stroke-width="0.5"/>
+  </g>
+
+  <!-- Glow orb -->
+  <circle cx="640" cy="320" r="280" fill="url(#glow)"/>
+
+  <!-- Phone mockup -->
+  <g filter="url(#shadow)">
+    <rect x="525" y="110" width="230" height="420" rx="28" fill="url(#phone-body)" stroke="#333" stroke-width="1.5"/>
+    <!-- Screen -->
+    <rect x="540" y="138" width="200" height="356" rx="4" fill="url(#screen-bg)"/>
+    <!-- Status bar -->
+    <rect x="540" y="138" width="200" height="24" rx="4" fill="#000" opacity="0.3"/>
+    <text x="548" y="153" fill="#888" font-size="9" font-family="monospace">9:41</text>
+    <!-- Top bar -->
+    <rect x="555" y="140" width="4" height="4" rx="2" fill="#4a90d9"/>
+    <rect x="562" y="140" width="4" height="4" rx="2" fill="#555"/>
+    <rect x="569" y="140" width="4" height="4" rx="2" fill="#555"/>
+    
+    <!-- PDF content on screen -->
+    <rect x="548" y="168" width="184" height="3" rx="1.5" fill="#4a90d9" opacity="0.6"/>
+    <rect x="548" y="176" width="120" height="2" rx="1" fill="#555"/>
+    <rect x="548" y="183" width="80" height="2" rx="1" fill="#555"/>
+    
+    <rect x="548" y="195" width="184" height="2" rx="1" fill="#444"/>
+    <rect x="548" y="203" width="170" height="2" rx="1" fill="#444"/>
+    <rect x="548" y="211" width="140" height="2" rx="1" fill="#444"/>
+    <rect x="548" y="219" width="160" height="2" rx="1" fill="#444"/>
+    <rect x="548" y="227" width="100" height="2" rx="1" fill="#444"/>
+    
+    <rect x="548" y="239" width="184" height="2" rx="1" fill="#3a3a3a"/>
+    <rect x="548" y="247" width="150" height="2" rx="1" fill="#3a3a3a"/>
+    <rect x="548" y="255" width="180" height="2" rx="1" fill="#3a3a3a"/>
+    <rect x="548" y="263" width="90" height="2" rx="1" fill="#3a3a3a"/>
+    
+    <!-- Image placeholder -->
+    <rect x="580" y="278" width="120" height="80" rx="6" fill="#2a2a3e" stroke="#3a3a5e" stroke-width="1"/>
+    <rect x="620" y="308" width="40" height="20" rx="3" fill="#4a90d9" opacity="0.2"/>
+    
+    <rect x="548" y="370" width="184" height="2" rx="1" fill="#444"/>
+    <rect x="548" y="378" width="160" height="2" rx="1" fill="#444"/>
+    <rect x="548" y="386" width="130" height="2" rx="1" fill="#444"/>
+    
+    <!-- Bottom bar -->
+    <rect x="548" y="450" width="184" height="1" rx="0.5" fill="#333"/>
+    <rect x="610" y="460" width="60" height="4" rx="2" fill="#555"/>
+    
+    <!-- Notch -->
+    <rect x="615" y="110" width="50" height="8" rx="4" fill="#1a1a1a"/>
+  </g>
+
+  <!-- Title -->
+  <text x="640" y="580" fill="#fff" font-size="42" font-family="system-ui, -apple-system, sans-serif" font-weight="700" text-anchor="middle" letter-spacing="2">All PDF Reader</text>
+  
+  <!-- Tagline -->
+  <text x="640" y="610" fill="#888" font-size="16" font-family="system-ui, -apple-system, sans-serif" text-anchor="middle" letter-spacing="1">阅读 · 管理 · 编辑 · 扫描 · AI 助手</text>
+
+  <!-- Feature badges -->
+  <g transform="translate(790, 200)">
+    <rect x="0" y="0" width="140" height="32" rx="16" fill="#1a1a2e" stroke="#4a90d9" stroke-width="0.5"/>
+    <text x="70" y="21" fill="#4a90d9" font-size="13" font-family="system-ui" text-anchor="middle" font-weight="600">📖 PDF 阅读</text>
+  </g>
+  <g transform="translate(790, 242)">
+    <rect x="0" y="0" width="140" height="32" rx="16" fill="#1a1a2e" stroke="#7c3aed" stroke-width="0.5"/>
+    <text x="70" y="21" fill="#7c3aed" font-size="13" font-family="system-ui" text-anchor="middle" font-weight="600">🛠️ PDF 工具箱</text>
+  </g>
+  <g transform="translate(790, 284)">
+    <rect x="0" y="0" width="140" height="32" rx="16" fill="#1a1a2e" stroke="#10b981" stroke-width="0.5"/>
+    <text x="70" y="21" fill="#10b981" font-size="13" font-family="system-ui" text-anchor="middle" font-weight="600">📷 扫描 OCR</text>
+  </g>
+  <g transform="translate(790, 326)">
+    <rect x="0" y="0" width="140" height="32" rx="16" fill="#1a1a2e" stroke="#f59e0b" stroke-width="0.5"/>
+    <text x="70" y="21" fill="#f59e0b" font-size="13" font-family="system-ui" text-anchor="middle" font-weight="600">🤖 AI 助手</text>
+  </g>
+
+  <!-- Download button -->
+  <g transform="translate(790, 390)">
+    <rect x="0" y="0" width="140" height="40" rx="20" fill="url(#btn-grad)"/>
+    <text x="70" y="26" fill="#fff" font-size="14" font-family="system-ui" text-anchor="middle" font-weight="600">⬇ 下载 APK</text>
+  </g>
+
+  <!-- Left side version info -->
+  <g transform="translate(350, 240)">
+    <rect x="0" y="0" width="130" height="32" rx="16" fill="#1a1a2e" stroke="#333" stroke-width="0.5"/>
+    <text x="24" y="21" fill="#666" font-size="11" font-family="monospace">Flutter 3.24.5</text>
+  </g>
+  <g transform="translate(350, 282)">
+    <rect x="0" y="0" width="130" height="32" rx="16" fill="#1a1a2e" stroke="#333" stroke-width="0.5"/>
+    <text x="24" y="21" fill="#666" font-size="11" font-family="monospace">Android 5.0+</text>
+  </g>
+  <g transform="translate(350, 324)">
+    <rect x="0" y="0" width="130" height="32" rx="16" fill="#1a1a2e" stroke="#333" stroke-width="0.5"/>
+    <text x="24" y="21" fill="#666" font-size="11" font-family="monospace">Material Design 3</text>
+  </g>
+
+  <!-- Decorative dots -->
+  <circle cx="180" cy="120" r="2" fill="#4a90d9" opacity="0.3"/>
+  <circle cx="200" cy="100" r="1.5" fill="#7c3aed" opacity="0.3"/>
+  <circle cx="1100" cy="480" r="2" fill="#10b981" opacity="0.3"/>
+  <circle cx="1080" cy="500" r="1.5" fill="#f59e0b" opacity="0.3"/>
+</svg>
