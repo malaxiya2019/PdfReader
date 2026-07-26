@@ -79,13 +79,11 @@ jobs:
       - name: 获取依赖
         run: flutter pub get
 
-      - name: 构建 Debug APK（直接 Gradle）
-        run: |
-          echo "=== 直接运行 gradle assembleDebug ==="
-          ./gradlew assembleDebug
-          echo "=== Gradle exit code: $? ==="
+      - name: 构建 Debug APK（带详细日志）
+        run: flutter build apk --debug -v
+        continue-on-error: true
 
-      - name: Debug Build Outputs
+      - name: Debug Build Outputs（找 APK）
         if: always()
         run: |
           echo "=== PWD ==="
@@ -95,15 +93,17 @@ jobs:
           find . -name "*.apk" -type f 2>/dev/null || echo "(无 apk)"
           echo ""
           echo "=== build 目录结构 ==="
-          ls -la build/ 2>/dev/null || echo "(目录不存在)"
+          ls -la build/ 2>/dev/null || echo "(build 目录不存在)"
           echo ""
           find build -maxdepth 5 -type d 2>/dev/null | head -30
           echo ""
-          echo "=== build/app/outputs ==="
-          ls -la build/app/outputs/ 2>/dev/null || echo "(不存在)"
+          echo "=== android/build 目录 ==="
+          ls -la android/build/ 2>/dev/null || echo "(android/build 不存在)"
           echo ""
-          echo "=== build/outputs ==="
-          ls -la build/outputs/ 2>/dev/null || echo "(不存在)"
+          find android/build -maxdepth 5 -type d 2>/dev/null | head -20
+          echo ""
+          echo "=== 查找所有 .apk / .aab ==="
+          find /home/runner/work/PdfReader -name "*.apk" -o -name "*.aab" 2>/dev/null | head -10
 
       - name: 查找并整理 APK
         run: |
@@ -115,7 +115,6 @@ jobs:
             ls -lh build/app/outputs/flutter-apk/all-pdf-reader-debug.apk
           else
             echo "❌ 未找到 APK"
-            find . -type f 2>/dev/null | head -50
             exit 1
           fi
 
