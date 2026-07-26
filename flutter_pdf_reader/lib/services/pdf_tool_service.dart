@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:ui' show Offset, Rect;
-import 'dart:ui' as ui show Image;
+import 'dart:ui' as ui show Image, ImageByteFormat;
 import 'dart:typed_data';
 import 'package:image/image.dart' as img;
 import 'package:pdf_render/pdf_render.dart';
@@ -299,7 +299,7 @@ class PdfToolService {
           final decoded = img.Image.fromBytes(
             width: pageImage.width,
             height: pageImage.height,
-            bytes: rawBytes.buffer,
+            bytes: rawBytes,
             numChannels: 4,
           );
           imageBytes = Uint8List.fromList(img.encodeJpg(decoded, quality: 92));
@@ -318,7 +318,6 @@ class PdfToolService {
         await File(outPath).writeAsBytes(imageBytes);
         exportedCount++;
 
-        image.dispose();
         page.dispose();
       }
 
