@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
@@ -15,6 +17,18 @@ enum PdfViewMode {
 
   /// 文本重排流式视图
   reflow,
+}
+
+/// 缩放适配模式
+enum ZoomFitMode {
+  /// 适配宽度 — 页面宽度填满屏幕，无水平滚动
+  fitToWidth,
+
+  /// 适配页面 — 整页完整可见（保留适当边距）
+  fitToPage,
+
+  /// 自由缩放 — 用户手动缩放
+  free,
 }
 
 class PdfReaderPage extends StatefulWidget {
@@ -49,17 +63,34 @@ class _PdfReaderPageState extends State<PdfReaderPage>
   late AnimationController _controlsController;
   late Animation<double> _controlsAnimation;
 
-  // ── 新增: 视图模式 ──
+  // ── 视图模式 ──
   PdfViewMode _viewMode = PdfViewMode.original;
+
+  // ── 缩放状态 ──
+  ZoomFitMode _zoomFitMode = ZoomFitMode.fitToWidth;
+  double _currentZoom = 1.0;
+  double _fitToWidthZoom = 1.0;
+  double _fitToPageZoom = 1.0;
+  Size? _pageSize; // PDF 页面原始尺寸（pt）
+
+  // ── 双击检测（Listener 原始事件，不参与手势竞技场） ──
+  DateTime? _lastTapTime;
+  Offset? _lastTapPosition;
+  Timer? _doubleTapTimer;
+  static const Duration _doubleTapTimeout = Duration(milliseconds: 300);
+  static const double _doubleTapDistance = 40.0;
+
+  // ── Reflow 文本重排 ──
   bool _reflowReady = false;
   String _reflowText = '';
   double _reflowFontSize = 18.0;
   ScrollController? _reflowScrollController;
 
-  // ── 新增: Fit-to-Width 缩放状态 ──
-  double _fitToWidthZoom = 1.0;
-  double _fitToPageZoom = 1.0;
-  bool _isFitToWidth = true; // 默认适配宽度
+  // ── Reflow 性能优化：字节缓存 + 页面文本缓存 ──
+  Uint8List? _pdfFileBytes;
+  final Map<int, String> _pageTextCache = {};
+  bool _pdfBytesLoading = false;
+  Completer<void>? _pdfBytesCompleter;
 
   @override
   void initState() {
@@ -89,87 +120,202 @@ class _PdfReaderPageState extends State<PdfReaderPage>
     _controlsController.dispose();
     _pdfViewerController?.dispose();
     _reflowScrollController?.dispose();
+    _doubleTapTimer?.cancel();
     super.dispose();
   }
 
-  // ── 新增: 计算适配宽度缩放比 ──
-  void _calculateZoomLevels(double pageWidth, double pageHeight) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-    // 适配宽度: 页面宽度刚好等于屏幕宽度
-    _fitToWidthZoom = screenWidth / pageWidth;
-    // 适配页面: 整个页面完整可见
-    final zoomH = screenWidth / pageWidth;
-    final zoomV = screenHeight / pageHeight;
+  // ════════════════════════════════════════════
+  // 缩放计算
+  // ════════════════════════════════════════════
+
+  /// 根据 PDF 页面尺寸计算适配缩放比
+  void _calculateZoomLevels(Size pageSize) {
+    _pageSize = pageSize;
+    final screenW = MediaQuery.of(context).size.width;
+    final screenH = MediaQuery.of(context).size.height;
+
+    // 适配宽度：页面宽度 = 屏幕宽度
+    _fitToWidthZoom = screenW / pageSize.width;
+
+    // 适配页面：整页完整可见（留有 5% 边距）
+    final zoomH = screenW / pageSize.width;
+    final zoomV = screenH / pageSize.height;
     _fitToPageZoom = min(zoomH, zoomV) * 0.95;
+
+    // 默认使用 fit-to-width
+    _zoomFitMode = ZoomFitMode.fitToWidth;
   }
 
-  // ── 新增: 应用 Fit-to-Width ──
+  /// 应用 Fit-to-Width（页面宽度适配屏幕）
   void _applyFitToWidth() {
-    if (_pdfViewerController == null) return;
+    if (_pdfViewerController == null || _pageSize == null) return;
     _pdfViewerController!.zoomLevel = _fitToWidthZoom;
-    setState(() => _isFitToWidth = true);
+    setState(() {
+      _zoomFitMode = ZoomFitMode.fitToWidth;
+      _currentZoom = _fitToWidthZoom;
+    });
   }
 
-  // ── 新增: 应用 Fit-to-Page ──
+  /// 应用 Fit-to-Page（整页完整可见）
   void _applyFitToPage() {
-    if (_pdfViewerController == null) return;
+    if (_pdfViewerController == null || _pageSize == null) return;
     _pdfViewerController!.zoomLevel = _fitToPageZoom;
-    setState(() => _isFitToWidth = false);
+    setState(() {
+      _zoomFitMode = ZoomFitMode.fitToPage;
+      _currentZoom = _fitToPageZoom;
+    });
   }
 
-  // ── 新增: 切换视图模式 ──
+  /// 双击缩放切换：Fit-to-Width ↔ Fit-to-Page
+  void _toggleZoomFit() {
+    if (_zoomFitMode == ZoomFitMode.fitToWidth) {
+      _applyFitToPage();
+    } else {
+      _applyFitToWidth();
+    }
+  }
+
+  // ════════════════════════════════════════════
+  // 双击检测（通过 Listener 原始指针事件，零手势冲突）
+  // ════════════════════════════════════════════
+
+  void _onPointerDown(PointerDownEvent event) {
+    // 只在原始视图模式下响应双击
+    if (_viewMode != PdfViewMode.original) return;
+
+    final now = DateTime.now();
+    final pos = event.position;
+
+    if (_lastTapTime != null &&
+        now.difference(_lastTapTime!) < _doubleTapTimeout &&
+        _lastTapPosition != null &&
+        (_lastTapPosition! - pos).distance < _doubleTapDistance) {
+      // ✅ 检测到双击
+      _doubleTapTimer?.cancel();
+      _doubleTapTimer = null;
+      _lastTapTime = null;
+      _lastTapPosition = null;
+
+      _toggleZoomFit();
+      HapticFeedback.lightImpact();
+      return;
+    }
+
+    _lastTapTime = now;
+    _lastTapPosition = pos;
+
+    // 超时重置，防止误触
+    _doubleTapTimer?.cancel();
+    _doubleTapTimer = Timer(_doubleTapTimeout, () {
+      _lastTapTime = null;
+      _lastTapPosition = null;
+    });
+  }
+
+  // ════════════════════════════════════════════
+  // Reflow 文本重排
+  // ════════════════════════════════════════════
+
+  /// 切换视图模式
   void _toggleViewMode() async {
     if (_viewMode == PdfViewMode.original) {
-      // 切换到 Reflow 视图 → 提取文本
-      _reflowText = '';
       setState(() {
         _viewMode = PdfViewMode.reflow;
         _reflowReady = false;
+        _reflowText = '';
       });
+      await _cachePdfBytes();
       await _extractCurrentPageText();
     } else {
-      // 切回原始视图
       setState(() => _viewMode = PdfViewMode.original);
     }
   }
 
-  // ── 新增: 提取当前页文本 ──
-  Future<void> _extractCurrentPageText() async {
+  /// 缓存 PDF 文件字节（避免反复读磁盘）
+  Future<void> _cachePdfBytes() async {
+    if (_pdfFileBytes != null) return;
+    if (_pdfBytesLoading) {
+      await _pdfBytesCompleter?.future;
+      return;
+    }
+
+    _pdfBytesLoading = true;
+    _pdfBytesCompleter = Completer<void>();
     try {
       final file = File(widget.filePath);
-      if (!await file.exists()) {
-        setState(() => _reflowText = '(文件不存在)');
-        return;
+      if (await file.exists()) {
+        _pdfFileBytes = await file.readAsBytes();
       }
-      final bytes = await file.readAsBytes();
+    } catch (_) {
+      // 读取失败，后续会单独处理
+    }
+    _pdfBytesLoading = false;
+    _pdfBytesCompleter?.complete();
+  }
+
+  /// 提取当前页文本（带缓存）
+  Future<void> _extractCurrentPageText() async {
+    // 先查缓存
+    if (_pageTextCache.containsKey(_currentPage)) {
+      setState(() {
+        _reflowText = _pageTextCache[_currentPage]!;
+        _reflowReady = true;
+      });
+      _scrollReflowToTop();
+      return;
+    }
+
+    final bytes = _pdfFileBytes;
+    if (bytes == null) {
+      // 回退：直接读文件
+      try {
+        final file = File(widget.filePath);
+        if (!await file.exists()) {
+          setState(() {
+            _reflowText = '（文件不存在）';
+            _reflowReady = true;
+          });
+          return;
+        }
+        final fileBytes = await file.readAsBytes();
+        _pdfFileBytes = fileBytes;
+        await _extractFromBytes(fileBytes);
+      } catch (e) {
+        setState(() {
+          _reflowText = '文本提取失败: $e';
+          _reflowReady = true;
+        });
+      }
+    } else {
+      await _extractFromBytes(bytes);
+    }
+  }
+
+  /// 从字节数据中提取文本
+  Future<void> _extractFromBytes(Uint8List bytes) async {
+    try {
       final doc = PdfDocument(inputBytes: bytes);
+      final pageIndex = (_currentPage - 1).clamp(0, doc.pages.count - 1);
+
       final extractor = PdfTextExtractor(doc);
       final pageText = extractor.extractText(
-        startPageIndex: _currentPage - 1,
-        endPageIndex: _currentPage - 1,
+        startPageIndex: pageIndex,
+        endPageIndex: pageIndex,
       );
       doc.dispose();
 
-      if (pageText.trim().isEmpty) {
-        setState(() {
-          _reflowText = '（此页无可提取的文本，可能是扫描件或图片型 PDF）';
-          _reflowReady = true;
-        });
+      final text = pageText.trim();
+      if (text.isEmpty) {
+        _pageTextCache[_currentPage] = '（此页无可提取的文本，可能是扫描件或图片型 PDF）';
       } else {
-        setState(() {
-          _reflowText = pageText;
-          _reflowReady = true;
-        });
-        // 滚动到顶部
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _reflowScrollController?.animateTo(
-            0,
-            duration: const Duration(milliseconds: 200),
-            curve: Curves.easeOut,
-          );
-        });
+        _pageTextCache[_currentPage] = text;
       }
+
+      setState(() {
+        _reflowText = _pageTextCache[_currentPage]!;
+        _reflowReady = true;
+      });
+      _scrollReflowToTop();
     } catch (e) {
       setState(() {
         _reflowText = '文本提取失败: $e';
@@ -177,6 +323,118 @@ class _PdfReaderPageState extends State<PdfReaderPage>
       });
     }
   }
+
+  /// 预提取相邻页文本
+  Future<void> _prefetchNeighborPages(int currentPage) async {
+    final bytes = _pdfFileBytes;
+    if (bytes == null) return;
+
+    final pagesToPrefetch = [
+      currentPage + 1, // 下一页
+      currentPage + 2, // 下下页
+    ];
+
+    for (final page in pagesToPrefetch) {
+      if (page < 1 || page > _totalPages) continue;
+      if (_pageTextCache.containsKey(page)) continue;
+
+      try {
+        final doc = PdfDocument(inputBytes: bytes);
+        final extractor = PdfTextExtractor(doc);
+        final text = extractor.extractText(
+          startPageIndex: page - 1,
+          endPageIndex: page - 1,
+        );
+        doc.dispose();
+        final trimmed = text.trim();
+        _pageTextCache[page] =
+            trimmed.isEmpty ? '（无可提取文本）' : trimmed;
+      } catch (_) {
+        // 预提取失败不阻塞 UI
+      }
+    }
+  }
+
+  void _scrollReflowToTop() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_reflowScrollController?.hasClients ?? false) {
+        _reflowScrollController!.animateTo(
+          0,
+          duration: const Duration(milliseconds: 150),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
+
+  // ════════════════════════════════════════════
+  // Syncfusion 回调
+  // ════════════════════════════════════════════
+
+  void _onDocumentLoaded(PdfDocumentLoadedDetails details) {
+    final pdfDoc = details.document;
+
+    // 获取页面尺寸（PDF points）
+    final pageSize = pdfDoc.pages[0].size;
+
+    setState(() {
+      _totalPages = pdfDoc.pages.count;
+      _isLoading = false;
+    });
+
+    // 计算缩放比
+    _calculateZoomLevels(pageSize);
+
+    // 延迟一帧应用 fit-to-width，确保渲染器就绪
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _applyFitToWidth();
+
+      // 再延迟 100ms 确认一次（部分设备需要）
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (_pdfViewerController?.zoomLevel != _fitToWidthZoom) {
+          _applyFitToWidth();
+        }
+      });
+    });
+
+    _restorePage();
+    _checkBookmark();
+  }
+
+  void _onPageChanged(PdfPageChangedDetails details) {
+    final newPage = details.newPageNumber;
+    setState(() => _currentPage = newPage);
+    _saveRecord();
+    _checkBookmark();
+
+    // Reflow 模式：提取当前页文本 + 预提取相邻页
+    if (_viewMode == PdfViewMode.reflow) {
+      _extractCurrentPageText();
+      _prefetchNeighborPages(newPage);
+    }
+  }
+
+  void _onZoomLevelChanged(ZoomLevelChangedDetails details) {
+    final zoom = details.newZoomLevel;
+    setState(() {
+      _currentZoom = zoom;
+      // 判断当前缩放模式
+      if (_pageSize != null) {
+        final screenW = MediaQuery.of(context).size.width;
+        if ((zoom - _fitToWidthZoom).abs() < 0.01) {
+          _zoomFitMode = ZoomFitMode.fitToWidth;
+        } else if ((zoom - _fitToPageZoom).abs() < 0.01) {
+          _zoomFitMode = ZoomFitMode.fitToPage;
+        } else {
+          _zoomFitMode = ZoomFitMode.free;
+        }
+      }
+    });
+  }
+
+  // ════════════════════════════════════════════
+  // 控制栏
+  // ════════════════════════════════════════════
 
   void _toggleControls() {
     if (_showControls) {
@@ -209,49 +467,9 @@ class _PdfReaderPageState extends State<PdfReaderPage>
     }
   }
 
-  void _onDocumentLoaded(PdfDocumentLoadedDetails details) {
-    final pdfDoc = details.document;
-    setState(() {
-      _totalPages = pdfDoc.pages.count;
-      _isLoading = false;
-    });
-
-    // 新增: 计算缩放比
-    _calculateZoomLevels(
-      pdfDoc.pages[0].size.width,
-      pdfDoc.pages[0].size.height,
-    );
-    // 默认 Fit-to-Width
-    WidgetsBinding.instance.addPostFrameCallback((_) => _applyFitToWidth());
-
-    _restorePage();
-    _checkBookmark();
-  }
-
-  void _onPageChanged(PdfPageChangedDetails details) {
-    setState(() => _currentPage = details.newPageNumber);
-    _saveRecord();
-    _checkBookmark();
-    // 新增: Reflow 模式下翻页时自动提取新页文本
-    if (_viewMode == PdfViewMode.reflow) {
-      _extractCurrentPageText();
-    }
-  }
-
-  // ── 新增: 双击切换 Fit-to-Width / Fit-to-Page ──
-  void _onDoubleTap() {
-    if (_isFitToWidth) {
-      _applyFitToPage();
-    } else {
-      _applyFitToWidth();
-    }
-  }
-
-  // ── 新增: 获取当前缩放文本 ──
-  String _currentZoomText() {
-    final zoom = _pdfViewerController?.zoomLevel ?? 1.0;
-    return '${(zoom * 100).toStringAsFixed(0)}%';
-  }
+  // ════════════════════════════════════════════
+  // 书签 / 记录 / 搜索
+  // ════════════════════════════════════════════
 
   Future<void> _restorePage() async {
     final record = await ReadingRecordService.loadRecord(widget.filePath);
@@ -443,9 +661,8 @@ class _PdfReaderPageState extends State<PdfReaderPage>
   Future<void> _openAIAssistant() async {
     String pdfText = "";
     try {
-      final File file = File(widget.filePath);
-      if (await file.exists()) {
-        final bytes = await file.readAsBytes();
+      final bytes = _pdfFileBytes;
+      if (bytes != null) {
         final doc = PdfDocument(inputBytes: bytes);
         final extractor = PdfTextExtractor(doc);
         final totalPages = doc.pages.count;
@@ -457,6 +674,24 @@ class _PdfReaderPageState extends State<PdfReaderPage>
         doc.dispose();
         if (pdfText.length > 8000) {
           pdfText = pdfText.substring(0, 8000);
+        }
+      } else {
+        final File file = File(widget.filePath);
+        if (await file.exists()) {
+          final fileBytes = await file.readAsBytes();
+          _pdfFileBytes = fileBytes;
+          final doc = PdfDocument(inputBytes: fileBytes);
+          final extractor = PdfTextExtractor(doc);
+          final totalPages = doc.pages.count;
+          final endPage = totalPages > 20 ? 20 : totalPages;
+          pdfText = extractor.extractText(
+            startPageIndex: 0,
+            endPageIndex: endPage - 1,
+          );
+          doc.dispose();
+          if (pdfText.length > 8000) {
+            pdfText = pdfText.substring(0, 8000);
+          }
         }
       }
     } catch (_) {}
@@ -473,6 +708,74 @@ class _PdfReaderPageState extends State<PdfReaderPage>
     );
   }
 
+  // ════════════════════════════════════════════
+  // 页面跳转
+  // ════════════════════════════════════════════
+
+  void _showPageJumpDialog() {
+    final controller = TextEditingController(text: '$_currentPage');
+    final theme = Theme.of(context);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: theme.cardColor,
+        title: Text(
+          '跳转到页面',
+          style: TextStyle(
+            color: theme.colorScheme.onSurface,
+            fontSize: 18,
+          ),
+        ),
+        content: TextField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          autofocus: true,
+          style: TextStyle(
+            color: theme.colorScheme.onSurface,
+            fontSize: 16,
+          ),
+          decoration: InputDecoration(
+            hintText: '输入页码 (1-$_totalPages)',
+            hintStyle: TextStyle(
+              color: theme.colorScheme.onSurface.withOpacity(0.4),
+            ),
+            filled: true,
+            fillColor: theme.colorScheme.onSurface.withOpacity(0.08),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide.none,
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(
+              '取消',
+              style:
+                  TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.6)),
+            ),
+          ),
+          FilledButton(
+            onPressed: () {
+              final page = int.tryParse(controller.text);
+              if (page != null && page >= 1 && page <= _totalPages) {
+                _pdfViewerController?.jumpToPage(page);
+                Navigator.pop(ctx);
+              }
+            },
+            child: const Text('跳转'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ════════════════════════════════════════════
+  // UI 构建
+  // ════════════════════════════════════════════
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -482,7 +785,7 @@ class _PdfReaderPageState extends State<PdfReaderPage>
         children: [
           // ── PDF 内容区域 ──
           if (_viewMode == PdfViewMode.original)
-            _buildPdfViewer(theme)
+            _buildPdfViewer()
           else
             _buildReflowView(theme),
 
@@ -520,7 +823,7 @@ class _PdfReaderPageState extends State<PdfReaderPage>
           if (!_showControls && !_isFullscreen)
             _buildPageIndicator(theme),
 
-          // ── 新增: Reflow 字体调节面板 ──
+          // ── Reflow 字体调节面板 ──
           if (_viewMode == PdfViewMode.reflow) _buildReflowFontPanel(theme),
         ],
       ),
@@ -528,8 +831,32 @@ class _PdfReaderPageState extends State<PdfReaderPage>
   }
 
   // ════════════════════════════════════════════
-  // 新增: Reflow 文本重排视图
+  // PDF 原始视图（关键修复：Listener 替代 GestureDetector）
   // ════════════════════════════════════════════
+
+  Widget _buildPdfViewer() {
+    // 使用 Listener 捕获原始指针事件 → 零手势竞技场冲突
+    // SfPdfViewer 内部的所有手势（缩放、拖动）正常工作
+    return Listener(
+      onPointerDown: _onPointerDown,
+      child: SfPdfViewer.file(
+        File(widget.filePath),
+        key: _pdfViewerKey,
+        controller: _pdfViewerController!,
+        onDocumentLoaded: _onDocumentLoaded,
+        onPageChanged: _onPageChanged,
+        onZoomLevelChanged: _onZoomLevelChanged,
+        onTap: (_) => _toggleControls(),
+        pageLayoutMode: PageLayoutMode.continuous,
+        scrollBehavior: const ScrollBehavior().copyWith(overscroll: false),
+      ),
+    );
+  }
+
+  // ════════════════════════════════════════════
+  // Reflow 文本重排视图
+  // ════════════════════════════════════════════
+
   Widget _buildReflowView(ThemeData theme) {
     if (!_reflowReady) {
       return Center(
@@ -561,15 +888,15 @@ class _PdfReaderPageState extends State<PdfReaderPage>
           right: 16,
           top: kToolbarHeight +
               MediaQuery.of(context).padding.top +
-              80, // 顶部留出空间
-          bottom: kToolbarHeight + 80, // 底部留出空间
+              80,
+          bottom: kToolbarHeight + 80,
         ),
         child: SelectableText(
           _reflowText,
           style: TextStyle(
             fontSize: _reflowFontSize,
             color: theme.colorScheme.onSurface,
-            height: 1.7, // 行高
+            height: 1.7,
             letterSpacing: 0.3,
           ),
         ),
@@ -577,7 +904,6 @@ class _PdfReaderPageState extends State<PdfReaderPage>
     );
   }
 
-  // ── 新增: Reflow 字体调节面板 ──
   Widget _buildReflowFontPanel(ThemeData theme) {
     return Positioned(
       bottom: kToolbarHeight + 24,
@@ -636,7 +962,10 @@ class _PdfReaderPageState extends State<PdfReaderPage>
               IconButton(
                 icon: const Icon(Icons.refresh, size: 20),
                 color: theme.colorScheme.onSurface.withOpacity(0.5),
-                onPressed: _extractCurrentPageText,
+                onPressed: () {
+                  _pageTextCache.remove(_currentPage);
+                  _extractCurrentPageText();
+                },
                 tooltip: '重新提取文本',
               ),
             ],
@@ -646,24 +975,9 @@ class _PdfReaderPageState extends State<PdfReaderPage>
     );
   }
 
-  // ── 新增: 覆盖 PDF Viewer 原始视图中的双击 ──
-  Widget _buildPdfViewer(ThemeData theme) {
-    // 用 GestureDetector 包裹来捕获双击事件
-    return GestureDetector(
-      onDoubleTapDown: (details) {
-        // 在双击位置放大/缩小
-      },
-      onDoubleTap: _onDoubleTap,
-      child: SfPdfViewer.file(
-        File(widget.filePath),
-        key: _pdfViewerKey,
-        controller: _pdfViewerController!,
-        onDocumentLoaded: _onDocumentLoaded,
-        onPageChanged: _onPageChanged,
-        onTap: (_) => _toggleControls(),
-      ),
-    );
-  }
+  // ════════════════════════════════════════════
+  // 加载指示器
+  // ════════════════════════════════════════════
 
   Widget _buildLoadingIndicator(ThemeData theme) {
     return Container(
@@ -694,6 +1008,10 @@ class _PdfReaderPageState extends State<PdfReaderPage>
     );
   }
 
+  // ════════════════════════════════════════════
+  // 顶部栏
+  // ════════════════════════════════════════════
+
   Widget _buildTopBar(ThemeData theme) {
     return Positioned(
       top: 0,
@@ -723,23 +1041,32 @@ class _PdfReaderPageState extends State<PdfReaderPage>
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  // ── 新增: 视图模式切换按钮 ──
+                  // 视图模式切换
                   if (_viewMode == PdfViewMode.original)
-                    _buildViewModeToggle(theme, Icons.text_fields, '文本重排')
+                    IconButton(
+                      icon: const Icon(Icons.text_fields),
+                      color: theme.colorScheme.primary,
+                      onPressed: _toggleViewMode,
+                      tooltip: '文本重排',
+                    )
                   else
-                    _buildViewModeToggle(
-                        theme, Icons.picture_as_pdf, '原始视图'),
-                  // ── 新增: Fit-to-Width 快捷按钮 ──
+                    IconButton(
+                      icon: const Icon(Icons.picture_as_pdf),
+                      color: theme.colorScheme.primary,
+                      onPressed: _toggleViewMode,
+                      tooltip: '原始视图',
+                    ),
+                  // Fit-to-Width / Fit-to-Page 切换
                   if (_viewMode == PdfViewMode.original)
                     IconButton(
                       icon: const Icon(Icons.fit_screen),
-                      color: _isFitToWidth
+                      color: _zoomFitMode == ZoomFitMode.fitToWidth
                           ? theme.colorScheme.primary
                           : theme.colorScheme.onSurface.withOpacity(0.7),
-                      onPressed: _isFitToWidth
-                          ? _applyFitToPage
-                          : _applyFitToWidth,
-                      tooltip: _isFitToWidth ? '适配页面' : '适配宽度',
+                      onPressed: _toggleZoomFit,
+                      tooltip: _zoomFitMode == ZoomFitMode.fitToWidth
+                          ? '适配页面'
+                          : '适配宽度',
                     ),
                   IconButton(
                     icon: const Icon(Icons.search),
@@ -780,17 +1107,32 @@ class _PdfReaderPageState extends State<PdfReaderPage>
                   ),
                 ],
               ),
-              // ── 新增: 缩放百分比指示器 ──
+              // 缩放百分比指示器
               if (_viewMode == PdfViewMode.original)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 4),
-                  child: Text(
-                    _currentZoomText(),
-                    style: TextStyle(
-                      color: theme.colorScheme.primary,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
-                    ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        _zoomFitMode == ZoomFitMode.fitToWidth
+                            ? Icons.arrow_left
+                            : _zoomFitMode == ZoomFitMode.fitToPage
+                                ? Icons.fullscreen
+                                : Icons.touch_app,
+                        size: 12,
+                        color: theme.colorScheme.primary.withOpacity(0.7),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        _zoomLabel(),
+                        style: TextStyle(
+                          color: theme.colorScheme.primary,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
             ],
@@ -800,14 +1142,17 @@ class _PdfReaderPageState extends State<PdfReaderPage>
     );
   }
 
-  // ── 新增: 视图模式切换按钮 ──
-  Widget _buildViewModeToggle(ThemeData theme, IconData icon, String tooltip) {
-    return IconButton(
-      icon: Icon(icon),
-      color: theme.colorScheme.primary,
-      onPressed: _toggleViewMode,
-      tooltip: tooltip,
-    );
+  /// 缩放模式标签
+  String _zoomLabel() {
+    final pct = '${(_currentZoom * 100).toStringAsFixed(0)}%';
+    switch (_zoomFitMode) {
+      case ZoomFitMode.fitToWidth:
+        return '适配宽度 $pct';
+      case ZoomFitMode.fitToPage:
+        return '适配页面 $pct';
+      case ZoomFitMode.free:
+        return '$pct';
+    }
   }
 
   Widget _buildFullscreenTopBar(ThemeData theme) {
@@ -836,7 +1181,6 @@ class _PdfReaderPageState extends State<PdfReaderPage>
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            // ── 新增: 全屏模式下视图切换 ──
             if (_viewMode == PdfViewMode.original)
               IconButton(
                 icon: const Icon(Icons.text_fields, color: Colors.white70),
@@ -872,6 +1216,10 @@ class _PdfReaderPageState extends State<PdfReaderPage>
     );
   }
 
+  // ════════════════════════════════════════════
+  // 底部栏
+  // ════════════════════════════════════════════
+
   Widget _buildBottomBar(ThemeData theme) {
     return Positioned(
       bottom: 0,
@@ -885,16 +1233,25 @@ class _PdfReaderPageState extends State<PdfReaderPage>
             padding: const EdgeInsets.symmetric(horizontal: 8),
             child: Row(
               children: [
-                // ── 新增: 缩小 ──
+                // 缩小
                 if (_viewMode == PdfViewMode.original)
                   IconButton(
                     icon: const Icon(Icons.zoom_out),
                     color: theme.colorScheme.onSurface.withOpacity(0.6),
                     onPressed: () {
-                      final z = (_pdfViewerController?.zoomLevel ?? 1.0) - 0.25;
-                      _pdfViewerController?.zoomLevel =
-                          z.clamp(0.5, 5.0);
+                      final z = _currentZoom - 0.25;
+                      _pdfViewerController?.zoomLevel = z.clamp(0.5, 5.0);
                     },
+                    tooltip: '缩小',
+                  ),
+                // 快速适配按钮
+                if (_viewMode == PdfViewMode.original)
+                  IconButton(
+                    icon: const Icon(Icons.fit_screen),
+                    color: theme.colorScheme.primary.withOpacity(0.7),
+                    onPressed: _toggleZoomFit,
+                    tooltip: '适配屏幕',
+                    iconSize: 20,
                   ),
                 IconButton(
                   icon: const Icon(Icons.chevron_left),
@@ -917,7 +1274,8 @@ class _PdfReaderPageState extends State<PdfReaderPage>
                       children: [
                         Icon(Icons.auto_stories,
                             size: 14,
-                            color: theme.colorScheme.onSurface.withOpacity(0.5)),
+                            color:
+                                theme.colorScheme.onSurface.withOpacity(0.5)),
                         const SizedBox(width: 4),
                         Text(
                           '$_currentPage / $_totalPages',
@@ -938,16 +1296,16 @@ class _PdfReaderPageState extends State<PdfReaderPage>
                       ? () => _pdfViewerController?.nextPage()
                       : null,
                 ),
-                // ── 新增: 放大 ──
+                // 放大
                 if (_viewMode == PdfViewMode.original)
                   IconButton(
                     icon: const Icon(Icons.zoom_in),
                     color: theme.colorScheme.onSurface.withOpacity(0.6),
                     onPressed: () {
-                      final z = (_pdfViewerController?.zoomLevel ?? 1.0) + 0.25;
-                      _pdfViewerController?.zoomLevel =
-                          z.clamp(0.5, 5.0);
+                      final z = _currentZoom + 0.25;
+                      _pdfViewerController?.zoomLevel = z.clamp(0.5, 5.0);
                     },
+                    tooltip: '放大',
                   ),
               ],
             ),
@@ -976,9 +1334,14 @@ class _PdfReaderPageState extends State<PdfReaderPage>
             IconButton(
               icon: const Icon(Icons.zoom_out, color: Colors.white70),
               onPressed: () {
-                final z = (_pdfViewerController?.zoomLevel ?? 1.0) - 0.25;
+                final z = _currentZoom - 0.25;
                 _pdfViewerController?.zoomLevel = z.clamp(0.5, 5.0);
               },
+            ),
+            IconButton(
+              icon: const Icon(Icons.fit_screen, color: Colors.white70),
+              onPressed: _toggleZoomFit,
+              tooltip: '适配屏幕',
             ),
             IconButton(
               icon: const Icon(Icons.chevron_left, color: Colors.white),
@@ -1014,7 +1377,7 @@ class _PdfReaderPageState extends State<PdfReaderPage>
             IconButton(
               icon: const Icon(Icons.zoom_in, color: Colors.white70),
               onPressed: () {
-                final z = (_pdfViewerController?.zoomLevel ?? 1.0) + 0.25;
+                final z = _currentZoom + 0.25;
                 _pdfViewerController?.zoomLevel = z.clamp(0.5, 5.0);
               },
             ),
@@ -1055,6 +1418,10 @@ class _PdfReaderPageState extends State<PdfReaderPage>
       ),
     );
   }
+
+  // ════════════════════════════════════════════
+  // 搜索栏
+  // ════════════════════════════════════════════
 
   Widget _buildSearchBar(ThemeData theme) {
     return Positioned(
@@ -1105,7 +1472,8 @@ class _PdfReaderPageState extends State<PdfReaderPage>
                       suffixIcon: _searchController.text.isNotEmpty
                           ? IconButton(
                               icon: const Icon(Icons.clear, size: 18),
-                              color: theme.colorScheme.onSurface.withOpacity(0.5),
+                              color:
+                                  theme.colorScheme.onSurface.withOpacity(0.5),
                               onPressed: _clearSearch,
                             )
                           : null,
@@ -1135,64 +1503,6 @@ class _PdfReaderPageState extends State<PdfReaderPage>
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  void _showPageJumpDialog() {
-    final controller = TextEditingController(text: '$_currentPage');
-    final theme = Theme.of(context);
-
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: theme.cardColor,
-        title: Text(
-          '跳转到页面',
-          style: TextStyle(
-            color: theme.colorScheme.onSurface,
-            fontSize: 18,
-          ),
-        ),
-        content: TextField(
-          controller: controller,
-          keyboardType: TextInputType.number,
-          style: TextStyle(
-            color: theme.colorScheme.onSurface,
-            fontSize: 16,
-          ),
-          decoration: InputDecoration(
-            hintText: '输入页码 (1-$_totalPages)',
-            hintStyle: TextStyle(
-              color: theme.colorScheme.onSurface.withOpacity(0.4),
-            ),
-            filled: true,
-            fillColor: theme.colorScheme.onSurface.withOpacity(0.08),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide.none,
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(
-              '取消',
-              style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.6)),
-            ),
-          ),
-          FilledButton(
-            onPressed: () {
-              final page = int.tryParse(controller.text);
-              if (page != null && page >= 1 && page <= _totalPages) {
-                _pdfViewerController?.jumpToPage(page);
-                Navigator.pop(ctx);
-              }
-            },
-            child: const Text('跳转'),
-          ),
-        ],
       ),
     );
   }
