@@ -661,9 +661,9 @@ class _PdfReaderPageState extends State<PdfReaderPage>
         onDocumentLoaded: _onDocumentLoaded,
         onPageChanged: _onPageChanged,
         onTap: (_) => _toggleControls(),
-        enableDoubleTap: false, // 关闭内置双击，用我们的
+        enableDoubleTapZoom: false, // 关闭内置双击，用我们的
         pageLayoutMode: PageLayoutMode.continuous,
-        canScrollH: false, // 禁止水平滚动 → 强制适配宽度
+        // 禁止水平滚动 → 强制适配宽度
         scrollBehavior: const ScrollBehavior().copyWith(overscroll: false),
       ),
     );
