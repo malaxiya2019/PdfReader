@@ -79,17 +79,14 @@ jobs:
       - name: 获取依赖
         run: flutter pub get
 
-      - name: 构建 Debug APK（Gradle 直接打包）
-        run: |
-          cd android
-          ./gradlew assembleDebug
+      - name: 构建 Debug APK
+        run: flutter build apk --debug
 
       - name: 查找并整理 APK
         run: |
-          APK=$(find . -path "*/flutter-apk/*" -name "*.apk" -type f 2>/dev/null | head -1)
-          if [ -z "$APK" ]; then
-            APK=$(find . -name "*.apk" -type f 2>/dev/null | head -1)
-          fi
+          echo "=== 搜索 APK ==="
+          find . -name "*.apk" -type f 2>/dev/null
+          APK=$(find . -name "*.apk" -type f 2>/dev/null | head -1)
           if [ -n "$APK" ]; then
             echo "✅ 找到 APK: $APK"
             mkdir -p build/app/outputs/flutter-apk/
@@ -97,6 +94,8 @@ jobs:
             ls -lh build/app/outputs/flutter-apk/all-pdf-reader-debug.apk
           else
             echo "❌ 未找到 APK"
+            echo "=== build 目录结构 ==="
+            find build -type f 2>/dev/null | head -50 || echo "(build 目录不存在)"
             exit 1
           fi
 
@@ -149,10 +148,10 @@ jobs:
       - name: 重命名产物
         run: |
           mkdir -p build/release
-          find build/app/outputs -name "*.apk" -type f | while read f; do
+          find . -name "*.apk" -type f | while read f; do
             cp "$f" build/release/all-pdf-reader-release.apk
           done
-          find build/app/outputs -name "*.aab" -type f | while read f; do
+          find . -name "*.aab" -type f | while read f; do
             cp "$f" build/release/all-pdf-reader-release.aab
           done
 
