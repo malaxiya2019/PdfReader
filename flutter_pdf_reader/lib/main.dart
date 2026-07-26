@@ -38,7 +38,6 @@ class AllPdfReaderApp extends StatefulWidget {
 class _AllPdfReaderAppState extends State<AllPdfReaderApp> {
   ThemeMode _themeMode = ThemeMode.dark;
   bool _permissionChecked = false;
-  bool _permissionGranted = false;
 
   @override
   void initState() {
@@ -62,7 +61,6 @@ class _AllPdfReaderAppState extends State<AllPdfReaderApp> {
     if (mounted) {
       setState(() {
         _permissionChecked = true;
-        _permissionGranted = granted;
       });
 
       if (!granted) {
@@ -92,7 +90,7 @@ class _AllPdfReaderAppState extends State<AllPdfReaderApp> {
           TextButton(
             onPressed: () {
               Navigator.of(ctx).pop();
-              setState(() => _permissionGranted = true);
+              setState(() {});
             },
             child: const Text('稍后'),
           ),

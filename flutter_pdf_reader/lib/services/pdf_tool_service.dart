@@ -120,7 +120,7 @@ class PdfToolService {
   /// 生成时间戳文件名
   static String timestampFileName(String prefix, String ext) {
     final now = DateTime.now();
-    return '${prefix}${now.millisecondsSinceEpoch}.$ext';
+    return '$prefix${now.millisecondsSinceEpoch}.$ext';
   }
 
   /// 通知媒体库扫描新文件（让图片出现在相册中）
@@ -311,8 +311,8 @@ class PdfToolService {
         pageImage.dispose();
 
         final outPath = galleryDir != null
-            ? "${galleryDir.path}/page_${i + 1}.$ext"
-            : "$outputDir/page_${i + 1}.$ext";
+            ? '${galleryDir.path}/page_${i + 1}.$ext'
+            : '$outputDir/page_${i + 1}.$ext';
         await File(outPath).writeAsBytes(imageBytes);
       // exportedCount++;
       }

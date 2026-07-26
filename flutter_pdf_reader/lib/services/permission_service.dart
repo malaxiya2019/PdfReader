@@ -59,7 +59,7 @@ class PermissionService {
       final version = Platform.operatingSystemVersion;
       final match = RegExp(r'Android (\d+)').firstMatch(version);
       if (match != null) {
-        return int.tryParse(match.group(1) ?? '0') ?? 0 >= 11;
+        return (int.tryParse(match.group(1) ?? '0') ?? 0) >= 11;
       }
     } catch (_) {}
     return false;
