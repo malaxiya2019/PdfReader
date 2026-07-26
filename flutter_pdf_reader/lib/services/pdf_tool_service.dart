@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:ui' show Offset, Rect;
-import 'dart:ui' as ui show ImageByteFormat;
+import 'dart:ui' as ui;
+
 import 'dart:typed_data';
 import 'package:image/image.dart' as img;
 import 'package:pdf_render/pdf_render.dart' as pdf_render;
@@ -163,7 +163,7 @@ class PdfToolService {
           for (int i = 0; i < doc.pages.count; i++) {
             final newPage = newDoc.pages.add();
             final template = doc.pages[i].createTemplate();
-            newPage.graphics.drawPdfTemplate(template, const Offset(0, 0));
+            newPage.graphics.drawPdfTemplate(template, const ui.Offset(0, 0));
           }
         }
 
@@ -206,7 +206,7 @@ class PdfToolService {
       for (int i = startPage - 1; i < endPage; i++) {
         final newPage = newDoc.pages.add();
         final template = doc.pages[i].createTemplate();
-        newPage.graphics.drawPdfTemplate(template, const Offset(0, 0));
+        newPage.graphics.drawPdfTemplate(template, const ui.Offset(0, 0));
       }
 
       final outBytes = newDoc.saveSync();
@@ -238,7 +238,7 @@ class PdfToolService {
         final newDoc = PdfDocument();
         final newPage = newDoc.pages.add();
         final template = doc.pages[i].createTemplate();
-        newPage.graphics.drawPdfTemplate(template, const Offset(0, 0));
+        newPage.graphics.drawPdfTemplate(template, const ui.Offset(0, 0));
 
         final outBytes = newDoc.saveSync();
         newDoc.dispose();
@@ -285,7 +285,7 @@ class PdfToolService {
 
       // exportedCount is unused; totalPages is used for the result
       for (int i = 0; i < totalPages; i++) {
-        final page = await doc.getPage(i + 1);
+        final pdf_render.PdfPage page = await doc.getPage(i + 1);
         final pageImage = await page.render(
           width: page.width.toInt() * 2,
           height: page.height.toInt() * 2,
@@ -354,7 +354,7 @@ class PdfToolService {
         final page = doc.pages.add();
         page.graphics.drawImage(
             image,
-            Rect.fromLTWH(0, 0, page.size.width, page.size.height));
+            ui.Rect.fromLTWH(0, 0, page.size.width, page.size.height));
       }
 
       final outBytes = doc.saveSync();
@@ -396,7 +396,7 @@ class PdfToolService {
         if (!deleteSet.contains(i)) {
           final newPage = newDoc.pages.add();
           final template = doc.pages[i].createTemplate();
-          newPage.graphics.drawPdfTemplate(template, const Offset(0, 0));
+          newPage.graphics.drawPdfTemplate(template, const ui.Offset(0, 0));
         }
       }
 
@@ -431,7 +431,7 @@ class PdfToolService {
       for (int i = 0; i < totalPages; i++) {
         final newPage = newDoc.pages.add();
         final template = doc.pages[i].createTemplate();
-        newPage.graphics.drawPdfTemplate(template, const Offset(0, 0));
+        newPage.graphics.drawPdfTemplate(template, const ui.Offset(0, 0));
 
         if (pageNumbers.contains(i + 1)) {
           newPage.graphics.rotateTransform(rotation * 3.14159 / 180);
@@ -471,7 +471,7 @@ class PdfToolService {
         if (extractSet.contains(i)) {
           final newPage = newDoc.pages.add();
           final template = doc.pages[i].createTemplate();
-          newPage.graphics.drawPdfTemplate(template, const Offset(0, 0));
+          newPage.graphics.drawPdfTemplate(template, const ui.Offset(0, 0));
         }
       }
 
@@ -512,7 +512,7 @@ class PdfToolService {
           text,
           PdfStandardFont(PdfFontFamily.helvetica, 40),
           brush: PdfBrushes.lightGray,
-          bounds: Rect.fromLTWH(-150, 0, 300, 50),
+          bounds: ui.Rect.fromLTWH(-150, 0, 300, 50),
         );
         graphics.restore();
       }
