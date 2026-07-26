@@ -16,8 +16,6 @@ class _SplitPdfPageState extends State<SplitPdfPage> {
   int _totalPages = 0;
   bool _isProcessing = false;
   int _splitMode = 0; // 0 = 范围, 1 = 逐页
-  int _startPage = 1;
-  int _endPage = 1;
 
   final TextEditingController _startCtrl = TextEditingController(text: '1');
   final TextEditingController _endCtrl = TextEditingController(text: '1');
@@ -45,7 +43,7 @@ class _SplitPdfPageState extends State<SplitPdfPage> {
       setState(() {
         _filePath = path;
         _totalPages = pages;
-        _endPage = pages;
+        _endCtrl.text = '$pages';
         _endCtrl.text = '$pages';
       });
     }
@@ -233,7 +231,7 @@ class _SplitPdfPageState extends State<SplitPdfPage> {
                         style: TextStyle(color: theme.colorScheme.onSurface),
                         onChanged: (v) {
                           final p = int.tryParse(v);
-                          if (p != null) _startPage = p;
+                          if (p != null) _startCtrl.text = '$p';
                         },
                       ),
                     ),
@@ -261,7 +259,7 @@ class _SplitPdfPageState extends State<SplitPdfPage> {
                         style: TextStyle(color: theme.colorScheme.onSurface),
                         onChanged: (v) {
                           final p = int.tryParse(v);
-                          if (p != null) _endPage = p;
+                          if (p != null) _endCtrl.text = '$p';
                         },
                       ),
                     ),

@@ -21,8 +21,8 @@ android {
         applicationId = "com.pdfreader.flutter_pdf_reader"
         minSdk = 21
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 3
+        versionName = "1.3.0"
     }
 
     buildTypes {

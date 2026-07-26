@@ -1,12 +1,9 @@
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:ui' show Offset, Rect;
-import 'dart:ui' as ui show Image, ImageByteFormat;
-import 'dart:typed_data';
-import 'package:image/image.dart' as img;
+
 import 'package:path_provider/path_provider.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
-
 
 class PdfToolResult {
   final bool success;
@@ -98,7 +95,6 @@ class PdfToolService {
     final extDir = await getExternalStorageDirectory();
     if (extDir != null) {
       // 用上级目录的 Pictures/AllPDFReader
-      final parts = extDir.path.split('/');
       // Android/data/<package>/files -> 往上到 Android 同级
       final baseDir = Directory(
         '/storage/emulated/0/Pictures/AllPDFReader',
@@ -268,10 +264,8 @@ class PdfToolService {
       final bytes = await _readBytesInIsolate(inputPath);
       final doc = PdfDocument(inputBytes: bytes);
       final totalPages = doc.pages.count;
-      final ext = imageFormat.toLowerCase() == 'jpg' ? 'jpg' : 'png';
 
       // 使用高清渲染质量 (2x retina)
-      const double renderScale = 2.0;
 
       // 准备图库目录
       Directory? galleryDir;
@@ -289,24 +283,10 @@ class PdfToolService {
       doc.dispose();
 
       // Syncfusion v28+ 移除了 PdfPage.toImage()，PDF转图片功能不可用
-      // 需要降级到 syncfusion_flutter_pdf: ^24.0.0 或使用 SfPdfViewer 截图
-      throw UnsupportedError(
-        'PDF 转图片功能在当前 Syncfusion 版本中不可用。'
-        '请降级到 syncfusion_flutter_pdf: ^24.0.0 或使用 SfPdfViewer 截图。'
-      );
-
-      // 如果有图库目录，通知根目录扫描
-      if (galleryDir != null) {
-        await _notifyMediaScanner(galleryDir.path);
-      }
-
       return PdfToolResult(
-        success: true,
-        message: saveToGallery
-            ? '已导出 $totalPages 页为 $imageFormat 格式并保存到相册'
-            : '已导出 $totalPages 页为 $imageFormat 格式',
-        outputPath: outputDir,
-        exportedCount: totalPages,
+        success: false,
+        message: 'PDF 转图片功能在当前 Syncfusion 版本中不可用。'
+            '请降级到 syncfusion_flutter_pdf: ^24.0.0 或使用 SfPdfViewer 截图。',
       );
     } catch (e) {
       return PdfToolResult(success: false, message: 'PDF 转图片失败: $e');

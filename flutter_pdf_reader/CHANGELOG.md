@@ -1,5 +1,32 @@
 # Changelog
 
+## v1.3.0 — PDF 自适应阅读引擎重构 (2026-07-26)
+
+### 核心重构
+- **PDF 阅读器渲染引擎重构**：
+  - 替换 `GestureDetector` 为 `Listener`（零手势冲突，双击缩放响应更精准）
+  - 修复 Fit-to-Width 计算时机（双确认机制：延迟一帧 + 100ms 再确认）
+  - 新增 `ZoomFitMode` 三态枚举（`fitToWidth` / `fitToPage` / `free`）
+  - 底部栏新增适配屏幕快捷按钮
+  - 页面加载时自动适配宽度，无需手动缩放
+
+### 新增功能
+- **文本重排（Reflow）流式阅读**：
+  - 字节缓存 + 页面文本缓存 + 预提取相邻页文本
+  - 支持字号调节（14-32pt）
+  - 一键切换原始视图/文本重排视图
+- **PDF 转图片**：修复 Syncfusion v28 兼容性问题，提供友好错误提示
+
+### 代码质量
+- 修复所有 `withOpacity` 弃用警告 → `withValues(alpha:)`
+- 修复所有 `unused_field`、`unused_local_variable`、`unused_import` 警告
+- 修复 Syncfusion v28 API 兼容性（4处）
+- 修复 AGP 8.4.0 + Gradle 8.6 构建兼容性
+
+### CI/CD
+- 修复 APK 路径检测（flutter build exit 不阻塞工作流）
+- 发布流程：推送 tag 自动构建 Release APK + AAB
+
 ## Phase 10 — v1.0.0 发布版本 (2026-07-25)
 
 ### 新增

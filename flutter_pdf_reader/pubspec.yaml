@@ -1,7 +1,7 @@
 name: all_pdf_reader
 description: "All PDF Reader - 高颜值暗黑风 PDF 阅读器"
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.3.0+1
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
