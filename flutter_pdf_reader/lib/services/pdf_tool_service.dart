@@ -287,10 +287,13 @@ class PdfToolService {
       }
 
       for (int i = 0; i < totalPages; i++) {
-        final page = doc.pages[i];
+        final int pageIdx = i;
 
-        // 使用 Syncfusion v25+ 的 toImage() API 将 PDF 页面渲染为位图
-        final ui.Image dartImage = await page.toImage(scale: renderScale);
+        // Syncfusion v28+ 使用 PdfDocument.exportAsImage() 替代 PdfPage.toImage()
+        final ui.Image dartImage = await doc.exportAsImage(
+          pageIndex: pageIdx,
+          scale: renderScale,
+        );
 
         Uint8List finalBytes;
 
