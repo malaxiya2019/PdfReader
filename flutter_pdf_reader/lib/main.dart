@@ -8,6 +8,7 @@ import 'features/files/files_page.dart';
 import 'features/tools/tools_page.dart';
 import 'services/ai/ai_factory.dart';
 import 'services/thumbnail_cache_service.dart';
+import 'services/permission_service.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,11 +37,14 @@ class AllPdfReaderApp extends StatefulWidget {
 
 class _AllPdfReaderAppState extends State<AllPdfReaderApp> {
   ThemeMode _themeMode = ThemeMode.dark;
+  bool _permissionChecked = false;
+  bool _permissionGranted = false;
 
   @override
   void initState() {
     super.initState();
     _loadThemeMode();
+    _checkPermission();
   }
 
   Future<void> _loadThemeMode() async {
@@ -51,6 +55,54 @@ class _AllPdfReaderAppState extends State<AllPdfReaderApp> {
         _themeMode = ThemeMode.values[mode.clamp(0, 2)];
       });
     }
+  }
+
+  Future<void> _checkPermission() async {
+    final granted = await PermissionService.requestStoragePermission();
+    if (mounted) {
+      setState(() {
+        _permissionChecked = true;
+        _permissionGranted = granted;
+      });
+
+      if (!granted) {
+        _showPermissionDeniedDialog();
+      }
+    }
+  }
+
+  void _showPermissionDeniedDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: const Text('需要存储权限'),
+        content: const Text(
+          'All PDF Reader 需要读取设备上的 PDF 文件。'
+          '请在系统设置中授予「管理所有文件」权限。',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              _openSettings();
+            },
+            child: const Text('前往设置'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              setState(() => _permissionGranted = true);
+            },
+            child: const Text('稍后'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _openSettings() async {
+    await PermissionService.openSettings();
   }
 
   Future<void> _setThemeMode(ThemeMode mode) async {
@@ -67,11 +119,45 @@ class _AllPdfReaderAppState extends State<AllPdfReaderApp> {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: _themeMode,
-      home: MainShell(
-        onThemeChanged: _setThemeMode,
-        currentThemeMode: _themeMode,
-      ),
+      home: _permissionChecked
+          ? MainShell(
+              onThemeChanged: _setThemeMode,
+              currentThemeMode: _themeMode,
+            )
+          : _buildSplashScreen(),
       onGenerateRoute: AppRouter.generateRoute,
+    );
+  }
+
+  Widget _buildSplashScreen() {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.picture_as_pdf, size: 64, color: Colors.white54),
+            const SizedBox(height: 16),
+            Text(
+              'All PDF Reader',
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.7),
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 24),
+            const SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Colors.white54,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

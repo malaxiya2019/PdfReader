@@ -69,6 +69,7 @@ class _PdfReaderPageState extends State<PdfReaderPage>
     final pdfDoc = details.document;
     setState(() { _totalPages = pdfDoc.pages.count; _isLoading = false; });
     onDocumentLoaded(pdfDoc.pages.count, pdfDoc.pages[0].size);
+    saveRecord(_currentPage, _totalPages);
     restorePage();
     checkBookmark(_currentPage);
   }

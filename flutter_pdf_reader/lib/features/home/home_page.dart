@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import '../../models/pdf_file_info.dart';
 import '../../services/pdf_scanner_service.dart';
 import '../../router/app_router.dart';
+import '../../services/reading_record_service.dart';
 import '../../core/widgets/app_logo.dart';
 
 class HomePage extends StatefulWidget {
@@ -14,7 +15,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   List<PdfFileInfo> _recentFiles = const [];
   List<PdfFileInfo> _favoriteFiles = const [];
   bool _isLoading = true;
@@ -26,6 +27,7 @@ class _HomePageState extends State<HomePage>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _fadeController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 600),
@@ -39,6 +41,7 @@ class _HomePageState extends State<HomePage>
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _fadeController.dispose();
     super.dispose();
   }
@@ -51,10 +54,36 @@ class _HomePageState extends State<HomePage>
     });
 
     try {
+      // 从阅读记录加载最近打开的文件
+      final records = await ReadingRecordService.getRecentRecords(limit: 10);
+      final recentList = <PdfFileInfo>[];
+      for (final record in records) {
+        final file = File(record.filePath);
+        if (await file.exists()) {
+          try {
+            final stat = await file.stat();
+            recentList.add(PdfFileInfo(
+              path: record.filePath,
+              name: file.uri.pathSegments.last,
+              sizeInBytes: stat.size,
+              lastModified: stat.modified,
+            ));
+          } catch (_) {}
+        }
+      }
+
+      // 补充扫描结果中的新文件（无阅读记录的）
+      PdfScannerService.invalidateCache();
       final allFiles = await PdfScannerService.scanAllCommonDirectories();
+      final recentPaths = recentList.map((f) => f.path).toSet();
+      final newFiles = allFiles
+          .where((f) => !recentPaths.contains(f.path))
+          .take(5)
+          .toList();
+
       if (mounted) {
         setState(() {
-          _recentFiles = allFiles.take(10).toList();
+          _recentFiles = [...recentList, ...newFiles];
           _favoriteFiles =
               allFiles.where((f) => f.isFavorite).take(10).toList();
           _isLoading = false;
@@ -76,6 +105,13 @@ class _HomePageState extends State<HomePage>
     PdfScannerService.invalidateCache();
     await _loadData();
   }
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _loadData();
+    }
+  }
+
 
   Future<void> _pickAndOpenFile() async {
     try {
@@ -439,13 +475,14 @@ class _ShimmerWidget extends StatefulWidget {
 }
 
 class _ShimmerWidgetState extends State<_ShimmerWidget>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late final AnimationController _controller;
   late final Animation<double> _animation;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
