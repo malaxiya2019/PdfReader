@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:ui' as ui show Image;
+import 'dart:ui' show Offset, Rect;
+import 'dart:ui' as ui show Image, ImageByteFormat;
 import 'dart:typed_data';
 import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';

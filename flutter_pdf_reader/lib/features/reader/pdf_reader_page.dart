@@ -465,8 +465,8 @@ class _PdfReaderPageState extends State<PdfReaderPage>
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => AiAssistantPage(
-          filePath: widget.filePath,
+        builder: (_) => AIAssistantPage(
+          pdfName: widget.fileName,
           pdfText: pdfText,
         ),
       ),
@@ -661,10 +661,6 @@ class _PdfReaderPageState extends State<PdfReaderPage>
         onDocumentLoaded: _onDocumentLoaded,
         onPageChanged: _onPageChanged,
         onTap: (_) => _toggleControls(),
-        enableDoubleTapZoom: false, // 关闭内置双击，用我们的
-        pageLayoutMode: PageLayoutMode.continuous,
-        // 禁止水平滚动 → 强制适配宽度
-        scrollBehavior: const ScrollBehavior().copyWith(overscroll: false),
       ),
     );
   }
