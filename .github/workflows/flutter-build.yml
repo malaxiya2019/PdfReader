@@ -67,27 +67,35 @@ jobs:
         run: flutter pub get
 
       - name: 构建 Debug APK
-        id: build-debug
-        continue-on-error: true
-        run: |
-          flutter build apk --debug 2>&1 || echo "⚠️ 构建退出码非零，继续查找 APK"
+        run: flutter build apk --debug
 
       - name: 查找并整理 APK
         id: find-apk
         run: |
+          set -e
+          echo "=== 构建产物目录 ==="
+          find build/app/outputs -type f 2>/dev/null || true
+          echo ""
           echo "=== 搜索 APK ==="
-          find /home/runner/work -name "*.apk" -type f 2>/dev/null || true
-          APK=$(find /home/runner/work -name "app-debug.apk" -type f 2>/dev/null | head -1)
+          # 先检查默认路径
+          if [ -f "build/app/outputs/flutter-apk/app-debug.apk" ]; then
+            APK="build/app/outputs/flutter-apk/app-debug.apk"
+          else
+            # 递归搜索整个 build 目录
+            APK=$(find build -name "app-debug.apk" -type f 2>/dev/null | head -1)
+          fi
           if [ -z "$APK" ]; then
-            APK=$(find /home/runner/work -name "*.apk" -type f 2>/dev/null | head -1)
+            APK=$(find build -name "*.apk" -type f 2>/dev/null | head -1)
           fi
           if [ -n "$APK" ]; then
             echo "✅ 找到 APK: $APK"
             mkdir -p build/app/outputs/flutter-apk/
             cp "$APK" build/app/outputs/flutter-apk/all-pdf-reader-debug.apk
-            echo "✅ 已复制"
+            ls -lh build/app/outputs/flutter-apk/all-pdf-reader-debug.apk
           else
             echo "❌ 未找到 APK"
+            echo "=== 完整 build 目录树 ==="
+            find build -type f 2>/dev/null | head -50 || echo "(build 目录可能不存在)"
             exit 1
           fi
 
