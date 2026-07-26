@@ -32,11 +32,11 @@ class ReaderBottomBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Positioned(
       bottom: 0, left: 0, right: 0,
-      child: isFullscreen ? _buildFullscreenBar() : _buildNormalBar(),
+      child: isFullscreen ? _buildFullscreenBar(context) : _buildNormalBar(context),
     );
   }
 
-  Widget _buildNormalBar() {
+  Widget _buildNormalBar(BuildContext context) {
     final t = Theme.of(context);
     return Container(
       color: t.cardColor.withOpacity(0.97),
@@ -73,7 +73,7 @@ class ReaderBottomBar extends StatelessWidget {
     );
   }
 
-  Widget _buildFullscreenBar() {
+  Widget _buildFullscreenBar(BuildContext context) {
     return Container(
       color: Colors.black87,
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom + 8, top: 8, left: 16, right: 16),

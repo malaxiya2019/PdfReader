@@ -12,7 +12,7 @@ class PdfViewerWrapper extends StatelessWidget {
   final PdfViewerController pdfViewerController;
   final PdfDocumentLoadedCallback? onDocumentLoaded;
   final PdfPageChangedCallback? onPageChanged;
-  final PdfZoomCallback? onZoomLevelChanged;
+  final void Function(PdfZoomDetails)? onZoomLevelChanged;
   final VoidCallback onTap;
   final PointerDownEventListener? onPointerDown;
 

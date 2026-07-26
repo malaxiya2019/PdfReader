@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:ui' show Offset, Rect;
-import 'dart:ui' as ui show Image, ImageByteFormat;
+import 'dart:ui' as ui show ImageByteFormat;
 import 'dart:typed_data';
 import 'package:image/image.dart' as img;
 import 'package:pdf_render/pdf_render.dart' as pdf_render;
@@ -283,7 +283,7 @@ class PdfToolService {
         galleryDir = subDir;
       }
 
-      int exportedCount = 0;
+      // exportedCount is unused; totalPages is used for the result
       for (int i = 0; i < totalPages; i++) {
         final page = await doc.getPage(i + 1);
         final pageImage = await page.render(
@@ -311,10 +311,10 @@ class PdfToolService {
         pageImage.dispose();
 
         final outPath = galleryDir != null
-            ? "\${galleryDir.path}/page_\${i + 1}.\$ext"
-            : "\$outputDir/page_\${i + 1}.\$ext";
+            ? "${galleryDir.path}/page_${i + 1}.$ext"
+            : "$outputDir/page_${i + 1}.$ext";
         await File(outPath).writeAsBytes(imageBytes);
-        exportedCount++;
+      // exportedCount++;
       }
 
       await doc.dispose();
