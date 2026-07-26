@@ -6,6 +6,9 @@ on:
     tags: [ 'v*' ]
   workflow_dispatch:
 
+env:
+  ORG_GRADLE_PROJECT_kotlin.jvm.target.validation.mode: IGNORE
+
 jobs:
   test-and-analyze:
     runs-on: ubuntu-24.04
@@ -29,6 +32,11 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+
+      - name: 配置 Gradle（抑制 JVM target 校验）
+        run: |
+          mkdir -p ~/.gradle
+          echo "kotlin.jvm.target.validation.mode=IGNORE" >> ~/.gradle/gradle.properties
 
       - name: 获取依赖
         run: flutter pub get
@@ -63,34 +71,22 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      - name: 配置 Gradle（抑制 JVM target 校验）
+        run: |
+          mkdir -p ~/.gradle
+          echo "kotlin.jvm.target.validation.mode=IGNORE" >> ~/.gradle/gradle.properties
+
       - name: 获取依赖
         run: flutter pub get
 
       - name: 构建 Debug APK
-        run: |
-          flutter build apk --debug --verbose || true
-          echo "=== Flutter build exit ignored, searching for APK ==="
-          find build -name "*.apk" -type f 2>/dev/null || echo "(no apk found in build/)"
-          find build/app -type f 2>/dev/null | head -20 || true
+        run: flutter build apk --debug
 
       - name: 查找并整理 APK
         id: find-apk
         run: |
-          set -e
-          echo "=== 构建产物目录 ==="
-          find build/app/outputs -type f 2>/dev/null || true
-          echo ""
           echo "=== 搜索 APK ==="
-          # 先检查默认路径
-          if [ -f "build/app/outputs/flutter-apk/app-debug.apk" ]; then
-            APK="build/app/outputs/flutter-apk/app-debug.apk"
-          else
-            # 递归搜索整个 build 目录
-            APK=$(find build -name "app-debug.apk" -type f 2>/dev/null | head -1)
-          fi
-          if [ -z "$APK" ]; then
-            APK=$(find build -name "*.apk" -type f 2>/dev/null | head -1)
-          fi
+          APK=$(find build -name "*.apk" -type f 2>/dev/null | head -1)
           if [ -n "$APK" ]; then
             echo "✅ 找到 APK: $APK"
             mkdir -p build/app/outputs/flutter-apk/
@@ -134,6 +130,11 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+
+      - name: 配置 Gradle（抑制 JVM target 校验）
+        run: |
+          mkdir -p ~/.gradle
+          echo "kotlin.jvm.target.validation.mode=IGNORE" >> ~/.gradle/gradle.properties
 
       - name: 获取依赖
         run: flutter pub get

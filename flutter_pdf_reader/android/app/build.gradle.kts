@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.pdfreader.flutter_pdf_reader"
-    compileSdk = 35
+    compileSdk = 34
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

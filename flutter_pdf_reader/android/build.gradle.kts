@@ -20,18 +20,5 @@ val clean by tasks.registering(Delete::class) {
     delete(rootProject.layout.buildDirectory)
 }
 
-// 只对 :app 子项目强制设置 JVM 目标
-// 其他插件子项目保持其自身配置，避免 JVM target 不一致错误
-project(":app") {
-    afterEvaluate {
-        tasks.withType<JavaCompile>().configureEach {
-            sourceCompatibility = JavaVersion.VERSION_17.toString()
-            targetCompatibility = JavaVersion.VERSION_17.toString()
-        }
-        tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-            kotlinOptions {
-                jvmTarget = "17"
-            }
-        }
-    }
-}
+// JVM 目标一致性由 gradle.properties 中的 kotlin.jvm.target.validation.mode=IGNORE 处理
+// 不要在这里强制覆盖子项目的 JVM 配置，避免干扰插件自身的构建配置
