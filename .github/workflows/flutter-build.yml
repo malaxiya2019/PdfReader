@@ -33,11 +33,7 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: 安装 Android SDK 平台
-        run: |
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "platforms;android-34" "platforms;android-35" 2>/dev/null || true
-
-      - name: 配置 Gradle（抑制 JVM target 校验）
+      - name: 配置 Gradle
         run: |
           mkdir -p ~/.gradle
           echo "kotlin.jvm.target.validation.mode=IGNORE" >> ~/.gradle/gradle.properties
@@ -75,12 +71,7 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: 安装 Android SDK 平台
-        run: |
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "platforms;android-34" "platforms;android-35" 2>/dev/null || true
-          ls $ANDROID_HOME/platforms/ 2>/dev/null || echo "No platforms dir"
-
-      - name: 配置 Gradle（抑制 JVM target 校验）
+      - name: 配置 Gradle
         run: |
           mkdir -p ~/.gradle
           echo "kotlin.jvm.target.validation.mode=IGNORE" >> ~/.gradle/gradle.properties
@@ -90,7 +81,6 @@ jobs:
 
       - name: 构建 Debug APK
         run: flutter build apk --debug
-        continue-on-error: true
 
       - name: 查找并整理 APK
         run: |
@@ -104,8 +94,8 @@ jobs:
             ls -lh build/app/outputs/flutter-apk/all-pdf-reader-debug.apk
           else
             echo "❌ 未找到 APK"
-            echo "=== build 目录结构 ==="
-            find build -type f 2>/dev/null | head -50 || echo "(build 目录不存在)"
+            find build -type f 2>/dev/null | head -50 || true
+            exit 1
           fi
 
       - name: 上传 APK Artifact
@@ -113,7 +103,7 @@ jobs:
         with:
           name: all-pdf-reader-debug-apk
           path: flutter_pdf_reader/build/app/outputs/flutter-apk/*.apk
-          if-no-files-found: warn
+          if-no-files-found: error
 
   release:
     if: startsWith(github.ref, 'refs/tags/v')
@@ -140,11 +130,7 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: 安装 Android SDK 平台
-        run: |
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "platforms;android-34" "platforms;android-35" 2>/dev/null || true
-
-      - name: 配置 Gradle（抑制 JVM target 校验）
+      - name: 配置 Gradle
         run: |
           mkdir -p ~/.gradle
           echo "kotlin.jvm.target.validation.mode=IGNORE" >> ~/.gradle/gradle.properties
