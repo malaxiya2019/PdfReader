@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../services/ai/models.dart';
 import '../../services/ai/ai_factory.dart';
-import '../settings/ai_settings_page.dart';
+import '../ai/ai_settings_page.dart';
 
 class AIAssistantPage extends StatefulWidget {
   final String pdfText;
